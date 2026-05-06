@@ -14,15 +14,6 @@ function App() {
   const [signUpSuccess, setSignUpSuccess] = useState(false);
 
 
-  useEffect(() => {
-    getInstruments();
-  }, []);
-
-  async function getInstruments() {
-    const { data } = await supabase.from("instruments").select();
-    setInstruments(data);
-  }
-
   async function signUp(formData) {
     formData.preventDefault()
     if(password !== confirmPassword){
@@ -32,6 +23,11 @@ function App() {
     const { data, error } = await supabase.auth.signUp({
       email: email,            
       password: password,
+      options: {
+        data: {
+          username: name
+        }
+      }
     })
     if (error) {
       setSignUpError(error.message)
