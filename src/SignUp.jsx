@@ -1,6 +1,6 @@
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "./SupaBaseClient";
 import { useState } from "react";
-const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
+
 
 function SignUp() {
   const [email, setEmail] = useState("");

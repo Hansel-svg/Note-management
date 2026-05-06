@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import { Route } from "wouter";
 import SignUp from "./SignUp";
+import SignIn from "./SignIn";
+import { supabase} from "./SupaBaseClient";
 
 
 function App() { 
@@ -12,6 +14,10 @@ function App() {
     <>
       <Route path="/signup">
         <SignUp />
+      </Route>
+
+      <Route path="/signin">
+        <SignIn />
       </Route>
     </>
   );
