@@ -41,10 +41,10 @@ function App() {
   return (
     <>
       <form onSubmit={signUp} action={signUp}>
-        <input type="email" placeholder="Enter email" onChange={(e) => {setEmail(e.target.value)}}/>
-        <input type="text" placeholder="Enter name" onChange={(e) => {setName(e.target.value)}}/>
-        <input type="password" placeholder="Enter password" onChange={(e) => {setPassword(e.target.value)}}/>
-        <input type="password" placeholder="Confirm password" onChange={(e) => {setConfirmPassword(e.target.value)}}/>
+        <input type="email" required placeholder="Enter email" onChange={(e) => {setEmail(e.target.value)}}/>
+        <input type="text" required placeholder="Enter name" onChange={(e) => {setName(e.target.value)}}/>
+        <input type="password" required placeholder="Enter password" onChange={(e) => {setPassword(e.target.value)}}/>
+        <input type="password" required placeholder="Confirm password" onChange={(e) => {setConfirmPassword(e.target.value)}}/>
 
         <button type="submit">Submit</button>
       </form>
