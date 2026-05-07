@@ -4,6 +4,7 @@ import { Route, Redirect } from "wouter";
 import SignUp from "./SignUp";
 import SignIn from "./SignIn";
 import { supabase } from "./SupaBaseClient";
+import Home from "./Home";
 
 const ProtectedRoute = ({ session, path, children }) => {
   return (
@@ -47,7 +48,7 @@ function App() {
       </Route>
 
       <ProtectedRoute session={session} path="/">
-        <h1>Welcome to home! You are logged in.</h1>
+        <Home />
       </ProtectedRoute>
     </>
   );
