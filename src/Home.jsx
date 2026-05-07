@@ -1,8 +1,30 @@
 import { supabase } from "./SupaBaseClient";
-import { Container, Flex, Heading, Button, Box, TextField, TextArea, Card, Grid, Text, IconButton } from "@radix-ui/themes";
-import { PlusIcon, TrashIcon, ExitIcon } from "@radix-ui/react-icons";
+import { Container, Flex, Heading, Button, Box, TextField, TextArea, Card, Grid, Text, IconButton, Callout } from "@radix-ui/themes";
+import { PlusIcon, TrashIcon, ExitIcon, InfoCircledIcon } from "@radix-ui/react-icons";
+import { useState, useEffect } from "react";
 
-export default function Home() {
+export default function Home({ session }) {
+  const [isVerified, setIsVerified] = useState(true);
+
+  useEffect(() => {
+    async function checkVerification() {
+      if (!session?.user?.id) return;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('is_verified')
+        .eq('id', session.user.id)
+        .single();
+        
+      if (!error && data) {
+        // Fallback to false if not strictly true, just in case
+        setIsVerified(data.is_verified === true);
+      }
+    }
+    
+    checkVerification();
+  }, [session]);
+
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
@@ -13,6 +35,19 @@ export default function Home() {
 
   return (
     <Container size="3" py="6" px="4">
+      {!isVerified && (
+        <Box mb="6">
+          <Callout.Root color="amber" variant="surface">
+            <Callout.Icon>
+              <InfoCircledIcon />
+            </Callout.Icon>
+            <Callout.Text>
+              Your account is not verified. Please verify your email to complete the registration process.
+            </Callout.Text>
+          </Callout.Root>
+        </Box>
+      )}
+
       <Flex justify="between" align="center" mb="6">
         <Heading size="8" as="h1" style={{ background: 'linear-gradient(to right, var(--cyan-9), var(--blue-9))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
           My Notes

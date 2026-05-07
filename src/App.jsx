@@ -48,7 +48,7 @@ function App() {
       </Route>
 
       <ProtectedRoute session={session} path="/">
-        <Home />
+        <Home session={session} />
       </ProtectedRoute>
     </>
   );
