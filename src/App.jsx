@@ -9,6 +9,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { Box } from "@radix-ui/themes";
 import ForgotPassword from "./ForgotPassword";
 import UpdatePassword from "./UpdatePassword";
+import Preferences from "./Preferences";
 
 const ProtectedRoute = ({ session, path, children }) => {
   return (
@@ -47,25 +48,39 @@ function App() {
 
   return (
     <>
-      <Box style={{ position: "absolute", top: "1rem", right: "1rem", zIndex: 1000 }}>
-        <ThemeToggle />
-      </Box>
+    
 
       <Route path="/signup">
+        <Box style={{ position: "absolute", top: "1rem", right: "1rem", zIndex: 1000 }}>
+        <ThemeToggle />
+      </Box>
         {session ? <Redirect to="/" /> : <SignUp />}
       </Route>
 
       <Route path="/signin">
+        <Box style={{ position: "absolute", top: "1rem", right: "1rem", zIndex: 1000 }}>
+        <ThemeToggle />
+      </Box>
         {session ? <Redirect to="/" /> : <SignIn />}
       </Route>
 
       <Route path="/forgot-password">
+        <Box style={{ position: "absolute", top: "1rem", right: "1rem", zIndex: 1000 }}>
+        <ThemeToggle />
+      </Box>
         <ForgotPassword />
       </Route>
 
       <Route path="/update-password">
+        <Box style={{ position: "absolute", top: "1rem", right: "1rem", zIndex: 1000 }}>
+        <ThemeToggle />
+      </Box>
         {isRecovery ? <UpdatePassword /> : <Redirect to="/" />}
       </Route>
+
+      <ProtectedRoute session={session} path="/preferences">
+        <Preferences />
+      </ProtectedRoute>
 
       <ProtectedRoute session={session} path="/">
         <Home session={session} />

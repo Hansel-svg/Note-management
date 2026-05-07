@@ -1,6 +1,6 @@
 import { supabase } from "./SupaBaseClient";
 import { Container, Flex, Heading, Button, Box, TextField, TextArea, Card, Grid, Text, IconButton, Callout } from "@radix-ui/themes";
-import { PlusIcon, TrashIcon, ExitIcon, InfoCircledIcon, LockClosedIcon } from "@radix-ui/react-icons";
+import { PlusIcon, TrashIcon, ExitIcon, InfoCircledIcon, LockClosedIcon, GearIcon } from "@radix-ui/react-icons";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 
@@ -55,6 +55,10 @@ export default function Home({ session }) {
           My Notes
         </Heading>
         <Flex gap="3" align="center">
+          <Button variant="soft" color="gray" onClick={() => setLocation('/preferences')} style={{ cursor: "pointer" }}>
+            <GearIcon />
+            Preferences
+          </Button>
           <Button variant="soft" color="cyan" onClick={() => setLocation('/forgot-password')} style={{ cursor: "pointer" }}>
             <LockClosedIcon />
             Reset Password
