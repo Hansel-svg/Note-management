@@ -66,9 +66,14 @@ function SignIn() {
                                 </Box>
 
                                 <Box>
-                                    <Text as="label" size="2" weight="bold" mb="2" style={{ display: 'block' }}>
-                                        Password
-                                    </Text>
+                                    <Flex justify="between" mb="2">
+                                        <Text as="label" size="2" weight="bold" style={{ display: 'block' }}>
+                                            Password
+                                        </Text>
+                                        <Link href="/forgot-password" style={{ color: 'var(--cyan-10)', textDecoration: 'none', fontSize: 'var(--font-size-2)' }}>
+                                            Forgot password?
+                                        </Link>
+                                    </Flex>
                                     <TextField.Root
                                         type="password"
                                         placeholder="Enter your password"

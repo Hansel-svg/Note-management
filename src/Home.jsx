@@ -1,10 +1,12 @@
 import { supabase } from "./SupaBaseClient";
 import { Container, Flex, Heading, Button, Box, TextField, TextArea, Card, Grid, Text, IconButton, Callout } from "@radix-ui/themes";
-import { PlusIcon, TrashIcon, ExitIcon, InfoCircledIcon } from "@radix-ui/react-icons";
+import { PlusIcon, TrashIcon, ExitIcon, InfoCircledIcon, LockClosedIcon } from "@radix-ui/react-icons";
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 
 export default function Home({ session }) {
   const [isVerified, setIsVerified] = useState(true);
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
     async function checkVerification() {
@@ -52,10 +54,16 @@ export default function Home({ session }) {
         <Heading size="8" as="h1" style={{ background: 'linear-gradient(to right, var(--cyan-9), var(--blue-9))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
           My Notes
         </Heading>
-        <Button variant="surface" color="gray" onClick={handleSignOut} style={{ cursor: "pointer" }}>
-          <ExitIcon />
-          Sign Out
-        </Button>
+        <Flex gap="3" align="center">
+          <Button variant="soft" color="cyan" onClick={() => setLocation('/forgot-password')} style={{ cursor: "pointer" }}>
+            <LockClosedIcon />
+            Reset Password
+          </Button>
+          <Button variant="surface" color="gray" onClick={handleSignOut} style={{ cursor: "pointer" }}>
+            <ExitIcon />
+            Sign Out
+          </Button>
+        </Flex>
       </Flex>
 
       <Box mb="8">

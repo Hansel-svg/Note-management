@@ -7,6 +7,8 @@ import { supabase } from "./SupaBaseClient";
 import Home from "./Home";
 import { ThemeToggle } from "./ThemeToggle";
 import { Box } from "@radix-ui/themes";
+import ForgotPassword from "./ForgotPassword";
+import UpdatePassword from "./UpdatePassword";
 
 const ProtectedRoute = ({ session, path, children }) => {
   return (
@@ -19,6 +21,7 @@ const ProtectedRoute = ({ session, path, children }) => {
 function App() { 
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true); 
+  const [isRecovery, setIsRecovery] = useState(false);
 
   useEffect(() => {
     const getSession = async () => {
@@ -30,6 +33,9 @@ function App() {
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsRecovery(true);
+      }
     });
 
     return () => {
@@ -51,6 +57,14 @@ function App() {
 
       <Route path="/signin">
         {session ? <Redirect to="/" /> : <SignIn />}
+      </Route>
+
+      <Route path="/forgot-password">
+        <ForgotPassword />
+      </Route>
+
+      <Route path="/update-password">
+        {isRecovery ? <UpdatePassword /> : <Redirect to="/" />}
       </Route>
 
       <ProtectedRoute session={session} path="/">
