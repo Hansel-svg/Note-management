@@ -5,6 +5,8 @@ import SignUp from "./SignUp";
 import SignIn from "./SignIn";
 import { supabase } from "./SupaBaseClient";
 import Home from "./Home";
+import { ThemeToggle } from "./ThemeToggle";
+import { Box } from "@radix-ui/themes";
 
 const ProtectedRoute = ({ session, path, children }) => {
   return (
@@ -39,6 +41,10 @@ function App() {
 
   return (
     <>
+      <Box style={{ position: "absolute", top: "1rem", right: "1rem", zIndex: 1000 }}>
+        <ThemeToggle />
+      </Box>
+
       <Route path="/signup">
         {session ? <Redirect to="/" /> : <SignUp />}
       </Route>
