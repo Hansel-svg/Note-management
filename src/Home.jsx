@@ -1,6 +1,6 @@
 import { supabase } from "./SupaBaseClient";
 import { Container, Flex, Heading, Button, Box, TextField, TextArea, Card, Grid, Text, IconButton, Callout, Avatar, Dialog, AlertDialog } from "@radix-ui/themes";
-import { PlusIcon, TrashIcon, ExitIcon, InfoCircledIcon, LockClosedIcon, GearIcon, GridIcon, ListBulletIcon, Pencil1Icon, Cross2Icon } from "@radix-ui/react-icons";
+import { PlusIcon, TrashIcon, ExitIcon, InfoCircledIcon, LockClosedIcon, GearIcon, GridIcon, ListBulletIcon, Pencil1Icon, Cross2Icon, ImageIcon } from "@radix-ui/react-icons";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation } from "wouter";
 import "./Home.css";
@@ -17,12 +17,14 @@ export default function Home({ session }) {
   const [noteContent, setNoteContent] = useState('');
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [noteImageUrls, setNoteImageUrls] = useState([]);
 
   const currentNoteIdRef = useRef(null);
   const autosaveTimeoutRef = useRef(null);
   const isSavingRef = useRef(false);
   const titleRef = useRef('');
   const contentRef = useRef('');
+  const imageUrlsRef = useRef([]);
 
   const fetchNotes = useCallback(async () => {
     if (!session?.user?.id) return;
@@ -73,6 +75,8 @@ export default function Home({ session }) {
     setNoteContent('');
     titleRef.current = '';
     contentRef.current = '';
+    setNoteImageUrls([]);
+    imageUrlsRef.current = [];
     setEditingNoteId(null);
     currentNoteIdRef.current = null;
     setIsDialogOpen(true);
@@ -83,13 +87,16 @@ export default function Home({ session }) {
     setNoteContent(note.content);
     titleRef.current = note.title;
     contentRef.current = note.content;
+    const urls = note.image_urls || [];
+    setNoteImageUrls(urls);
+    imageUrlsRef.current = urls;
     setEditingNoteId(note.id);
     currentNoteIdRef.current = note.id;
     setIsDialogOpen(true);
   };
 
-  const autosaveNote = async (title, content, id) => {
-    if (!title.trim() && !content.trim()) return id;
+  const autosaveNote = async (title, content, id, imageUrls) => {
+    if (!title.trim() && !content.trim() && imageUrls.length === 0) return id;
     if (!session?.user?.id) return id;
     
     isSavingRef.current = true;
@@ -99,12 +106,12 @@ export default function Home({ session }) {
       if (id) {
         await supabase
           .from('notes')
-          .update({ title, content, updated_at: new Date().toISOString() })
+          .update({ title, content, image_urls: imageUrls, updated_at: new Date().toISOString() })
           .eq('id', id);
       } else {
         const { data, error } = await supabase
           .from('notes')
-          .insert([{ title, content, user_id: session.user.id }])
+          .insert([{ title, content, image_urls: imageUrls, user_id: session.user.id }])
           .select()
           .single();
         if (error) throw error;
@@ -128,7 +135,7 @@ export default function Home({ session }) {
         triggerAutosave();
         return;
       }
-      const savedId = await autosaveNote(titleRef.current, contentRef.current, currentNoteIdRef.current);
+      const savedId = await autosaveNote(titleRef.current, contentRef.current, currentNoteIdRef.current, imageUrlsRef.current);
       if (savedId !== currentNoteIdRef.current) {
         currentNoteIdRef.current = savedId;
         setEditingNoteId(savedId);
@@ -159,9 +166,51 @@ export default function Home({ session }) {
       if (autosaveTimeoutRef.current) {
         clearTimeout(autosaveTimeoutRef.current);
         if (!isSavingRef.current) {
-          autosaveNote(titleRef.current, contentRef.current, currentNoteIdRef.current);
+          autosaveNote(titleRef.current, contentRef.current, currentNoteIdRef.current, imageUrlsRef.current);
         }
       }
+    }
+  };
+
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length || !session?.user?.id) return;
+    
+    setIsSaving(true);
+    const newUrls = [];
+    
+    for (const file of files) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${session.user.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('note_images')
+        .upload(fileName, file);
+        
+      if (!uploadError) {
+        const { data } = supabase.storage.from('note_images').getPublicUrl(fileName);
+        newUrls.push(data.publicUrl);
+      }
+    }
+    
+    if (newUrls.length > 0) {
+      const updatedUrls = [...imageUrlsRef.current, ...newUrls];
+      setNoteImageUrls(updatedUrls);
+      imageUrlsRef.current = updatedUrls;
+      triggerAutosave();
+    }
+    setIsSaving(false);
+  };
+
+  const handleRemoveImage = async (urlToRemove) => {
+    const updatedUrls = imageUrlsRef.current.filter(url => url !== urlToRemove);
+    setNoteImageUrls(updatedUrls);
+    imageUrlsRef.current = updatedUrls;
+    triggerAutosave();
+    
+    const fileName = urlToRemove.split('/').pop();
+    if (fileName) {
+      await supabase.storage.from('note_images').remove([fileName]);
     }
   };
 
@@ -251,15 +300,28 @@ export default function Home({ session }) {
       ) : viewMode === 'grid' ? (
         <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="4">
           {notes.map(note => (
-            <Card key={note.id} size="2" variant="surface" className="note-card-hover" onClick={() => handleEditClick(note)} style={{ display: 'flex', flexDirection: 'column', height: '260px' }}>
-              <Heading size="6" mb="2" truncate>{note.title}</Heading>
-              <Box style={{ flexGrow: 1, overflow: 'hidden', marginBottom: '1rem' }}>
+            <Card key={note.id} size="2" variant="surface" className="note-card-hover" onClick={() => handleEditClick(note)} style={{ display: 'flex', flexDirection: 'column', height: '320px' }}>
+              <Heading size="6" mb="2" truncate style={{ flexShrink: 0 }}>{note.title}</Heading>
+              {note.image_urls && note.image_urls.length > 0 && (
+                <Box style={{ flexShrink: 0, height: '120px', width: '100%', marginBottom: '12px', borderRadius: '6px', overflow: 'hidden' }}>
+                  <img src={note.image_urls[0]} alt="cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </Box>
+              )}
+              <Box style={{ flexGrow: 1, flexShrink: 1, overflow: 'hidden', marginBottom: '1rem' }}>
                 <Text as="p" size="3" color="gray" className="preview-content-grid">
                   {note.content}
                 </Text>
               </Box>
-              <Flex justify="between" align="center" mt="auto" pt="4">
-                <Text size="2" color="gray">{new Date(note.created_at).toLocaleDateString()}</Text>
+              <Flex justify="between" align="center" mt="auto" pt="4" style={{ flexShrink: 0 }}>
+                <Flex gap="3" align="center">
+                  <Text size="2" color="gray">{new Date(note.created_at).toLocaleDateString()}</Text>
+                  {note.image_urls && note.image_urls.length > 0 && (
+                    <Flex gap="1" align="center">
+                      <ImageIcon color="gray" />
+                      <Text size="1" color="gray">{note.image_urls.length}</Text>
+                    </Flex>
+                  )}
+                </Flex>
                 <Flex gap="2" onClick={(e) => e.stopPropagation()}>
                   <AlertDialog.Root>
                     <AlertDialog.Trigger asChild>
@@ -297,9 +359,20 @@ export default function Home({ session }) {
                   <Text as="p" size="3" color="gray" mb="2" className="preview-content-list">
                     {note.content}
                   </Text>
+                  {note.image_urls && note.image_urls.length > 0 && (
+                    <Flex gap="1" align="center" mb="2">
+                      <ImageIcon color="gray" />
+                      <Text size="1" color="gray">{note.image_urls.length} attachment{note.image_urls.length > 1 ? 's' : ''}</Text>
+                    </Flex>
+                  )}
                   <Text size="2" color="gray">{new Date(note.created_at).toLocaleDateString()}</Text>
                 </Box>
-                <Flex gap="2" onClick={(e) => e.stopPropagation()}>
+                {note.image_urls && note.image_urls.length > 0 && (
+                  <Box style={{ flexShrink: 0, width: '80px', height: '80px', borderRadius: '6px', overflow: 'hidden', marginLeft: '16px' }}>
+                    <img src={note.image_urls[0]} alt="cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </Box>
+                )}
+                <Flex gap="2" onClick={(e) => e.stopPropagation()} style={{ marginLeft: '16px' }}>
                   <AlertDialog.Root>
                     <AlertDialog.Trigger asChild>
                       <IconButton color="red" variant="soft" size="2" style={{ cursor: "pointer" }}>
@@ -369,6 +442,41 @@ export default function Home({ session }) {
               className="notion-content-input"
               rows={1}
             />
+            
+            {noteImageUrls.length > 0 && (
+              <Grid columns="3" gap="3" mt="4">
+                {noteImageUrls.map((url, idx) => (
+                  <Box key={idx} style={{ position: 'relative', aspectRatio: '1', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--gray-5)' }}>
+                    <img src={url} alt={`attachment-${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <IconButton 
+                      size="1" 
+                      color="red" 
+                      variant="solid" 
+                      style={{ position: 'absolute', top: 6, right: 6, cursor: 'pointer', zIndex: 10 }}
+                      onClick={() => handleRemoveImage(url)}
+                    >
+                      <Cross2Icon />
+                    </IconButton>
+                  </Box>
+                ))}
+              </Grid>
+            )}
+          </Flex>
+
+          <Flex justify="start" mt="4">
+            <input 
+              type="file" 
+              id="image-upload" 
+              multiple 
+              accept="image/*" 
+              style={{ display: 'none' }} 
+              onChange={handleImageUpload} 
+            />
+            <label htmlFor="image-upload">
+              <Button asChild variant="soft" color="gray" style={{ cursor: 'pointer' }}>
+                <span><ImageIcon /> Add Image</span>
+              </Button>
+            </label>
           </Flex>
         </Dialog.Content>
       </Dialog.Root>
