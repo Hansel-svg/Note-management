@@ -1,12 +1,19 @@
 import { supabase } from "./SupaBaseClient";
 import { Container, Flex, Heading, Button, Box, TextField, TextArea, Card, Grid, Text, IconButton, Callout, Avatar } from "@radix-ui/themes";
-import { PlusIcon, TrashIcon, ExitIcon, InfoCircledIcon, LockClosedIcon, GearIcon } from "@radix-ui/react-icons";
+import { PlusIcon, TrashIcon, ExitIcon, InfoCircledIcon, LockClosedIcon, GearIcon, GridIcon, ListBulletIcon } from "@radix-ui/react-icons";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+
+const STATIC_NOTES = [
+  { id: 1, title: 'Welcome Note', content: 'This is a scaffold for your home page using Radix UI. The sign out button works!', date: 'Today' },
+  { id: 2, title: 'Meeting Notes', content: 'Discuss project roadmap and new features for Q3. Remember to bring the presentation slides.', date: 'Yesterday' },
+  { id: 3, title: 'Ideas', content: '- Add dark mode support\n- Migrate to Radix UI Themes\n- Integrate Supabase DB', date: 'Oct 24' },
+];
 
 export default function Home({ session }) {
   const [isVerified, setIsVerified] = useState(true);
   const [avatarUrl, setAvatarUrl] = useState(null);
+  const [viewMode, setViewMode] = useState('grid');
   const [, setLocation] = useLocation();
 
   useEffect(() => {
@@ -94,46 +101,65 @@ export default function Home({ session }) {
         </Card>
       </Box>
 
-      <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="4">
-        <Card size="2" variant="surface" style={{ display: 'flex', flexDirection: 'column' }}>
-          <Heading size="4" mb="2">Welcome Note</Heading>
-          <Text as="p" size="3" color="gray" mb="4" style={{ flexGrow: 1 }}>
-            This is a scaffold for your home page using Radix UI. The sign out button works!
-          </Text>
-          <Flex justify="between" align="center" mt="auto" pt="4">
-            <Text size="2" color="gray">Today</Text>
-            <IconButton color="red" variant="soft" size="2" style={{ cursor: "pointer" }}>
-              <TrashIcon />
-            </IconButton>
-          </Flex>
-        </Card>
+      <Flex justify="between" align="center" mb="4">
+        <Heading size="6">Recent Notes</Heading>
+        <Flex gap="2">
+          <IconButton 
+            variant={viewMode === 'grid' ? 'solid' : 'soft'} 
+            color="cyan" 
+            onClick={() => setViewMode('grid')}
+            style={{ cursor: 'pointer' }}
+          >
+            <GridIcon />
+          </IconButton>
+          <IconButton 
+            variant={viewMode === 'list' ? 'solid' : 'soft'} 
+            color="cyan" 
+            onClick={() => setViewMode('list')}
+            style={{ cursor: 'pointer' }}
+          >
+            <ListBulletIcon />
+          </IconButton>
+        </Flex>
+      </Flex>
 
-        <Card size="2" variant="surface" style={{ display: 'flex', flexDirection: 'column' }}>
-          <Heading size="4" mb="2">Meeting Notes</Heading>
-          <Text as="p" size="3" color="gray" mb="4" style={{ flexGrow: 1 }}>
-            Discuss project roadmap and new features for Q3. Remember to bring the presentation slides.
-          </Text>
-          <Flex justify="between" align="center" mt="auto" pt="4">
-            <Text size="2" color="gray">Yesterday</Text>
-            <IconButton color="red" variant="soft" size="2" style={{ cursor: "pointer" }}>
-              <TrashIcon />
-            </IconButton>
-          </Flex>
-        </Card>
-
-        <Card size="2" variant="surface" style={{ display: 'flex', flexDirection: 'column' }}>
-          <Heading size="4" mb="2">Ideas</Heading>
-          <Text as="p" size="3" color="gray" mb="4" style={{ flexGrow: 1, whiteSpace: "pre-wrap" }}>
-            - Add dark mode support{"\n"}- Migrate to Radix UI Themes{"\n"}- Integrate Supabase DB
-          </Text>
-          <Flex justify="between" align="center" mt="auto" pt="4">
-            <Text size="2" color="gray">Oct 24</Text>
-            <IconButton color="red" variant="soft" size="2" style={{ cursor: "pointer" }}>
-              <TrashIcon />
-            </IconButton>
-          </Flex>
-        </Card>
-      </Grid>
+      {viewMode === 'grid' ? (
+        <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="4">
+          {STATIC_NOTES.map(note => (
+            <Card key={note.id} size="2" variant="surface" style={{ display: 'flex', flexDirection: 'column' }}>
+              <Heading size="4" mb="2">{note.title}</Heading>
+              <Text as="p" size="3" color="gray" mb="4" style={{ flexGrow: 1, whiteSpace: "pre-wrap" }}>
+                {note.content}
+              </Text>
+              <Flex justify="between" align="center" mt="auto" pt="4">
+                <Text size="2" color="gray">{note.date}</Text>
+                <IconButton color="red" variant="soft" size="2" style={{ cursor: "pointer" }}>
+                  <TrashIcon />
+                </IconButton>
+              </Flex>
+            </Card>
+          ))}
+        </Grid>
+      ) : (
+        <Flex direction="column" gap="4">
+          {STATIC_NOTES.map(note => (
+            <Card key={note.id} size="2" variant="surface">
+              <Flex justify="between" align="start">
+                <Box style={{ flexGrow: 1 }}>
+                  <Heading size="4" mb="2">{note.title}</Heading>
+                  <Text as="p" size="3" color="gray" mb="2" style={{ whiteSpace: "pre-wrap" }}>
+                    {note.content}
+                  </Text>
+                  <Text size="2" color="gray">{note.date}</Text>
+                </Box>
+                <IconButton color="red" variant="soft" size="2" style={{ cursor: "pointer" }}>
+                  <TrashIcon />
+                </IconButton>
+              </Flex>
+            </Card>
+          ))}
+        </Flex>
+      )}
     </Container>
   );
 }
