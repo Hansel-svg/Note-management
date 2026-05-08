@@ -1,11 +1,12 @@
 import { supabase } from "./SupaBaseClient";
-import { Container, Flex, Heading, Button, Box, TextField, TextArea, Card, Grid, Text, IconButton, Callout } from "@radix-ui/themes";
+import { Container, Flex, Heading, Button, Box, TextField, TextArea, Card, Grid, Text, IconButton, Callout, Avatar } from "@radix-ui/themes";
 import { PlusIcon, TrashIcon, ExitIcon, InfoCircledIcon, LockClosedIcon, GearIcon } from "@radix-ui/react-icons";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 
 export default function Home({ session }) {
   const [isVerified, setIsVerified] = useState(true);
+  const [avatarUrl, setAvatarUrl] = useState(null);
   const [, setLocation] = useLocation();
 
   useEffect(() => {
@@ -14,13 +15,15 @@ export default function Home({ session }) {
       
       const { data, error } = await supabase
         .from('profiles')
-        .select('is_verified')
+        .select('is_verified, avatar_url')
         .eq('id', session.user.id)
         .single();
         
       if (!error && data) {
-        // Fallback to false if not strictly true, just in case
         setIsVerified(data.is_verified === true);
+        if (data.avatar_url) {
+          setAvatarUrl(data.avatar_url);
+        }
       }
     }
     
@@ -55,6 +58,12 @@ export default function Home({ session }) {
           My Notes
         </Heading>
         <Flex gap="3" align="center">
+          <Avatar
+            size="3"
+            src={avatarUrl}
+            fallback={session?.user?.email?.charAt(0).toUpperCase() || "?"}
+            radius="full"
+          />
           <Button variant="soft" color="gray" onClick={() => setLocation('/preferences')} style={{ cursor: "pointer" }}>
             <GearIcon />
             Preferences

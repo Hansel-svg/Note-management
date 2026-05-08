@@ -79,7 +79,7 @@ function App() {
       </Route>
 
       <ProtectedRoute session={session} path="/preferences">
-        <Preferences />
+        <Preferences session={session} />
       </ProtectedRoute>
 
       <ProtectedRoute session={session} path="/">
