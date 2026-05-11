@@ -20,6 +20,11 @@ export default function Home({ session }) {
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [labels, setLabels] = useState([]);
+  const [activeFilterLabels, setActiveFilterLabels] = useState([]);
+  const [isLabelManagerOpen, setIsLabelManagerOpen] = useState(false);
+  const [newLabelName, setNewLabelName] = useState('');
+  const [selectedNoteLabels, setSelectedNoteLabels] = useState([]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -37,9 +42,17 @@ export default function Home({ session }) {
   const contentRef = useRef('');
   const imageUrlsRef = useRef([]);
 
+  const fetchLabels = useCallback(async () => {
+    if (!session?.user?.id) return;
+    const { data, error } = await supabase.from('labels').select('*').order('name');
+    if (!error && data) {
+      setLabels(data);
+    }
+  }, [session]);
+
   const fetchNotes = useCallback(async () => {
     if (!session?.user?.id) return;
-    let query = supabase.from('notes').select('*');
+    let query = supabase.from('notes').select('*, note_labels(labels(*))');
 
     if (debouncedSearchTerm) {
       query = query.or(`title.ilike.%${debouncedSearchTerm}%,content.ilike.%${debouncedSearchTerm}%`);
@@ -106,7 +119,8 @@ export default function Home({ session }) {
     
     checkVerification();
     fetchNotes();
-  }, [session, fetchNotes]);
+    fetchLabels();
+  }, [session, fetchNotes, fetchLabels]);
 
   const handleSignOut = async () => {
     try {
@@ -125,6 +139,7 @@ export default function Home({ session }) {
     imageUrlsRef.current = [];
     setEditingNoteId(null);
     currentNoteIdRef.current = null;
+    setSelectedNoteLabels([]);
     setIsDialogOpen(true);
   };
 
@@ -138,8 +153,90 @@ export default function Home({ session }) {
     imageUrlsRef.current = urls;
     setEditingNoteId(note.id);
     currentNoteIdRef.current = note.id;
+    setSelectedNoteLabels(note.note_labels ? note.note_labels.map(nl => nl.labels.id) : []);
     setIsDialogOpen(true);
   };
+
+  const handleCreateLabel = async () => {
+    if (!newLabelName.trim()) return;
+    const { data, error } = await supabase.from('labels').insert([{ user_id: session.user.id, name: newLabelName.trim() }]).select();
+    if (!error && data) {
+      setLabels([...labels, ...data].sort((a, b) => a.name.localeCompare(b.name)));
+      setNewLabelName('');
+    }
+  };
+
+  const handleDeleteLabel = async (id) => {
+    const { error } = await supabase.from('labels').delete().eq('id', id);
+    if (!error) {
+      setLabels(labels.filter(l => l.id !== id));
+      setActiveFilterLabels(activeFilterLabels.filter(lId => lId !== id));
+      setNotes(notes.map(n => ({...n, note_labels: n.note_labels ? n.note_labels.filter(nl => nl.labels.id !== id) : []})));
+    }
+  };
+
+  const handleRenameLabel = async (id, newName) => {
+    if (!newName.trim()) return;
+    const { error } = await supabase.from('labels').update({ name: newName.trim() }).eq('id', id);
+    if (!error) {
+      setLabels(labels.map(l => l.id === id ? { ...l, name: newName.trim() } : l).sort((a, b) => a.name.localeCompare(b.name)));
+      setNotes(notes.map(n => ({
+        ...n, 
+        note_labels: n.note_labels ? n.note_labels.map(nl => nl.labels.id === id ? { ...nl, labels: { ...nl.labels, name: newName.trim() } } : nl) : []
+      })));
+    }
+  };
+
+  const handleToggleNoteLabel = async (labelId) => {
+    let noteId = currentNoteIdRef.current;
+    if (!noteId) {
+      const { data, error } = await supabase.from('notes').insert([{ user_id: session.user.id, title: titleRef.current, content: contentRef.current }]).select().single();
+      if (!error && data) {
+        noteId = data.id;
+        currentNoteIdRef.current = data.id;
+        setEditingNoteId(data.id);
+        setNotes([data, ...notes]);
+      } else {
+        return;
+      }
+    }
+
+    const isAttached = selectedNoteLabels.includes(labelId);
+    let newSelected;
+    
+    if (isAttached) {
+      newSelected = selectedNoteLabels.filter(id => id !== labelId);
+      await supabase.from('note_labels').delete().match({ note_id: noteId, label_id: labelId });
+    } else {
+      newSelected = [...selectedNoteLabels, labelId];
+      await supabase.from('note_labels').insert([{ note_id: noteId, label_id: labelId }]);
+    }
+    
+    setSelectedNoteLabels(newSelected);
+    
+    setNotes(prev => prev.map(n => {
+      if (n.id === noteId) {
+        if (isAttached) {
+          return { ...n, note_labels: n.note_labels ? n.note_labels.filter(nl => nl.labels.id !== labelId) : [] };
+        } else {
+          const labelObj = labels.find(l => l.id === labelId);
+          return { ...n, note_labels: [...(n.note_labels || []), { labels: labelObj }] };
+        }
+      }
+      return n;
+    }));
+  };
+
+  const toggleFilterLabel = (id) => {
+    setActiveFilterLabels(prev => prev.includes(id) ? prev.filter(lId => lId !== id) : [...prev, id]);
+  };
+
+  const filteredNotes = notes.filter(note => {
+    if (activeFilterLabels.length === 0) return true;
+    if (!note.note_labels) return false;
+    const noteLabelIds = note.note_labels.map(nl => nl.labels?.id);
+    return activeFilterLabels.every(id => noteLabelIds.includes(id));
+  });
 
   const autosaveNote = async (title, content, id, imageUrls) => {
     if (!title.trim() && !content.trim() && imageUrls.length === 0) return id;
@@ -351,15 +448,50 @@ export default function Home({ session }) {
       </Flex>
       </Flex>
 
+      <Flex gap="2" mb="4" wrap="wrap" align="center">
+        <Button 
+          variant="soft" 
+          color="gray" 
+          onClick={() => setIsLabelManagerOpen(true)}
+          style={{ cursor: 'pointer', borderRadius: '16px' }}
+          size="1"
+        >
+          <GearIcon /> Manage Labels
+        </Button>
+        {labels.map(label => (
+          <Button 
+            key={label.id} 
+            variant={activeFilterLabels.includes(label.id) ? "solid" : "soft"} 
+            color="cyan" 
+            onClick={() => toggleFilterLabel(label.id)}
+            style={{ cursor: 'pointer', borderRadius: '16px' }}
+            size="1"
+          >
+            {label.name}
+          </Button>
+        ))}
+      </Flex>
+
       {notes.length === 0 ? (
+        <Text color="gray" size="3">No notes yet. Click "Add Note" to create one!</Text>
+      ) : filteredNotes.length === 0 ? (
         <Text color="gray" size="3">
-          {debouncedSearchTerm ? `No notes found matching "${debouncedSearchTerm}".` : 'No notes yet. Click "Add Note" to create one!'}
+          {debouncedSearchTerm ? `No notes found matching "${debouncedSearchTerm}".` : 'No notes match your selected labels.'}
         </Text>
       ) : viewMode === 'grid' ? (
         <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="4">
-          {notes.map(note => (
+          {filteredNotes.map(note => (
             <Card key={note.id} size="2" variant="surface" className="note-card-hover" onClick={() => handleEditClick(note)} style={{ display: 'flex', flexDirection: 'column', height: '320px', backgroundColor: noteColor === 'surface' ? undefined : `var(--${noteColor}-3)` }}>
               <Heading size="6" mb="2" truncate style={{ flexShrink: 0, fontSize: `${titleFontSize}px`, lineHeight: 1.2 }}>{note.title}</Heading>
+              {note.note_labels && note.note_labels.length > 0 && (
+                <Flex gap="1" mb="2" wrap="wrap" style={{ flexShrink: 0 }}>
+                  {note.note_labels.map(nl => (
+                    <Text key={nl.labels.id} size="1" style={{ backgroundColor: 'var(--cyan-3)', color: 'var(--cyan-11)', padding: '2px 6px', borderRadius: '4px' }}>
+                      {nl.labels.name}
+                    </Text>
+                  ))}
+                </Flex>
+              )}
               {note.image_urls && note.image_urls.length > 0 && (
                 <Box style={{ flexShrink: 0, height: '120px', width: '100%', marginBottom: '12px', borderRadius: '6px', overflow: 'hidden' }}>
                   <img src={note.image_urls[0]} alt="cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -411,11 +543,20 @@ export default function Home({ session }) {
         </Grid>
       ) : (
         <Flex direction="column" gap="4">
-          {notes.map(note => (
+          {filteredNotes.map(note => (
             <Card key={note.id} size="2" variant="surface" className="note-card-hover" onClick={() => handleEditClick(note)} style={{ backgroundColor: noteColor === 'surface' ? undefined : `var(--${noteColor}-3)` }}>
               <Flex justify="between" align="start">
                 <Box style={{ flexGrow: 1, minWidth: 0 }}>
                   <Heading size="6" mb="2" truncate style={{ fontSize: `${titleFontSize}px`, lineHeight: 1.2 }}>{note.title}</Heading>
+                  {note.note_labels && note.note_labels.length > 0 && (
+                    <Flex gap="1" mb="2" wrap="wrap" style={{ flexShrink: 0 }}>
+                      {note.note_labels.map(nl => (
+                        <Text key={nl.labels.id} size="1" style={{ backgroundColor: 'var(--cyan-3)', color: 'var(--cyan-11)', padding: '2px 6px', borderRadius: '4px' }}>
+                          {nl.labels.name}
+                        </Text>
+                      ))}
+                    </Flex>
+                  )}
                   <Text as="p" color="gray" mb="2" className="preview-content-list" style={{ fontSize: `${fontSize}px` }}>
                     {note.content}
                   </Text>
@@ -485,6 +626,22 @@ export default function Home({ session }) {
           </Flex>
 
           <Flex direction="column" gap="4" style={{ flexGrow: 1 }}>
+            {labels.length > 0 && (
+              <Flex gap="2" wrap="wrap">
+                {labels.map(label => (
+                  <Button
+                    key={label.id}
+                    variant={selectedNoteLabels.includes(label.id) ? "solid" : "soft"}
+                    color="cyan"
+                    size="1"
+                    onClick={() => handleToggleNoteLabel(label.id)}
+                    style={{ cursor: 'pointer', borderRadius: '16px' }}
+                  >
+                    {label.name}
+                  </Button>
+                ))}
+              </Flex>
+            )}
             <input
               value={noteTitle}
               onChange={handleTitleChange}
@@ -541,6 +698,59 @@ export default function Home({ session }) {
                 <span><ImageIcon /> Add Image</span>
               </Button>
             </label>
+          </Flex>
+        </Dialog.Content>
+      </Dialog.Root>
+
+      <Dialog.Root open={isLabelManagerOpen} onOpenChange={setIsLabelManagerOpen}>
+        <Dialog.Content maxWidth="450px" style={{ backgroundColor: noteColor === 'surface' ? undefined : `var(--${noteColor}-2)` }}>
+          <Dialog.Title>Manage Labels</Dialog.Title>
+          <Dialog.Description size="2" color="gray" mb="4">
+            Create, rename, or delete labels.
+          </Dialog.Description>
+          
+          <Flex gap="2" mb="5">
+            <TextField.Root 
+              placeholder="New label name..." 
+              value={newLabelName}
+              onChange={(e) => setNewLabelName(e.target.value)}
+              style={{ flexGrow: 1 }}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleCreateLabel(); }}
+            />
+            <Button onClick={handleCreateLabel} color="cyan" style={{ cursor: 'pointer' }}>Add</Button>
+          </Flex>
+
+          <Flex direction="column" gap="3">
+            {labels.map(label => (
+              <Flex key={label.id} justify="between" align="center" gap="3">
+                <TextField.Root 
+                  defaultValue={label.name}
+                  onBlur={(e) => {
+                    if (e.target.value !== label.name) {
+                      handleRenameLabel(label.id, e.target.value);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.target.blur();
+                    }
+                  }}
+                  style={{ flexGrow: 1 }}
+                />
+                <IconButton color="red" variant="soft" onClick={() => handleDeleteLabel(label.id)} style={{ cursor: 'pointer' }}>
+                  <TrashIcon />
+                </IconButton>
+              </Flex>
+            ))}
+            {labels.length === 0 && (
+              <Text size="2" color="gray" align="center">No labels created yet.</Text>
+            )}
+          </Flex>
+          
+          <Flex justify="end" mt="5">
+            <Dialog.Close>
+              <Button variant="soft" color="gray" style={{ cursor: 'pointer' }}>Close</Button>
+            </Dialog.Close>
           </Flex>
         </Dialog.Content>
       </Dialog.Root>
