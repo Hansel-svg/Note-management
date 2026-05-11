@@ -1,6 +1,6 @@
 import { supabase } from "./SupaBaseClient";
 import { Container, Flex, Heading, Button, Box, TextField, TextArea, Card, Grid, Text, IconButton, Callout, Avatar, Dialog, AlertDialog } from "@radix-ui/themes";
-import { PlusIcon, TrashIcon, ExitIcon, InfoCircledIcon, LockClosedIcon, GearIcon, GridIcon, ListBulletIcon, Pencil1Icon, Cross2Icon, ImageIcon } from "@radix-ui/react-icons";
+import { PlusIcon, TrashIcon, ExitIcon, InfoCircledIcon, LockClosedIcon, GearIcon, GridIcon, ListBulletIcon, Pencil1Icon, Cross2Icon, ImageIcon, DrawingPinIcon, DrawingPinFilledIcon } from "@radix-ui/react-icons";
 import { useState, useEffect, useCallback, useRef, useContext } from "react";
 import { useLocation } from "wouter";
 import { ThemeContext } from "./ThemeProvider";
@@ -33,7 +33,8 @@ export default function Home({ session }) {
     const { data, error } = await supabase
       .from('notes')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('pinned_at', { ascending: false, nullsFirst: false })
+      .order('updated_at', { ascending: false });
 
     if (!error && data) {
       setNotes(data);
@@ -41,6 +42,33 @@ export default function Home({ session }) {
       console.error("Error fetching notes:", error);
     }
   }, [session]);
+
+  const handleTogglePin = async (e, note) => {
+    e.stopPropagation();
+    const newPinnedAt = note.pinned_at ? null : new Date().toISOString();
+    
+    setNotes(prevNotes => {
+      const updatedNotes = prevNotes.map(n => n.id === note.id ? { ...n, pinned_at: newPinnedAt } : n);
+      return updatedNotes.sort((a, b) => {
+        if (a.pinned_at && b.pinned_at) {
+          return new Date(b.pinned_at) - new Date(a.pinned_at);
+        }
+        if (a.pinned_at) return -1;
+        if (b.pinned_at) return 1;
+        return new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at);
+      });
+    });
+
+    const { error } = await supabase
+      .from('notes')
+      .update({ pinned_at: newPinnedAt })
+      .eq('id', note.id);
+      
+    if (error) {
+      console.error("Error toggling pin:", error);
+      fetchNotes();
+    }
+  };
 
   useEffect(() => {
     async function checkVerification() {
@@ -317,7 +345,6 @@ export default function Home({ session }) {
               </Box>
               <Flex justify="between" align="center" mt="auto" pt="4" style={{ flexShrink: 0 }}>
                 <Flex gap="3" align="center">
-                  <Text size="2" color="gray">{new Date(note.created_at).toLocaleDateString()}</Text>
                   {note.image_urls && note.image_urls.length > 0 && (
                     <Flex gap="1" align="center">
                       <ImageIcon color="gray" />
@@ -326,6 +353,9 @@ export default function Home({ session }) {
                   )}
                 </Flex>
                 <Flex gap="2" onClick={(e) => e.stopPropagation()}>
+                  <IconButton variant="soft" color={note.pinned_at ? "cyan" : "gray"} size="2" onClick={(e) => handleTogglePin(e, note)} style={{ cursor: "pointer" }}>
+                    {note.pinned_at ? <DrawingPinFilledIcon /> : <DrawingPinIcon />}
+                  </IconButton>
                   <AlertDialog.Root>
                     <AlertDialog.Trigger asChild>
                       <IconButton color="red" variant="soft" size="2" style={{ cursor: "pointer" }}>
@@ -368,7 +398,6 @@ export default function Home({ session }) {
                       <Text size="1" color="gray">{note.image_urls.length} attachment{note.image_urls.length > 1 ? 's' : ''}</Text>
                     </Flex>
                   )}
-                  <Text size="2" color="gray">{new Date(note.created_at).toLocaleDateString()}</Text>
                 </Box>
                 {note.image_urls && note.image_urls.length > 0 && (
                   <Box style={{ flexShrink: 0, width: '80px', height: '80px', borderRadius: '6px', overflow: 'hidden', marginLeft: '16px' }}>
@@ -376,6 +405,9 @@ export default function Home({ session }) {
                   </Box>
                 )}
                 <Flex gap="2" onClick={(e) => e.stopPropagation()} style={{ marginLeft: '16px' }}>
+                  <IconButton variant="soft" color={note.pinned_at ? "cyan" : "gray"} size="2" onClick={(e) => handleTogglePin(e, note)} style={{ cursor: "pointer" }}>
+                    {note.pinned_at ? <DrawingPinFilledIcon /> : <DrawingPinIcon />}
+                  </IconButton>
                   <AlertDialog.Root>
                     <AlertDialog.Trigger asChild>
                       <IconButton color="red" variant="soft" size="2" style={{ cursor: "pointer" }}>
