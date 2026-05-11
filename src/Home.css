@@ -221,7 +221,6 @@
 .notion-title-input {
   all: unset;
   display: block;
-  font-size: 2.5rem !important;
   font-weight: 700 !important;
   width: 100% !important;
   color: var(--text-h, var(--gray-12, #111)) !important;
@@ -253,7 +252,6 @@
 .notion-content-input {
   all: unset;
   display: block;
-  font-size: 1.1rem !important;
   line-height: 1.6 !important;
   width: 100% !important;
   min-height: 50vh !important;

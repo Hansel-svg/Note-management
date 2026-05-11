@@ -1,8 +1,9 @@
 import { supabase } from "./SupaBaseClient";
 import { Container, Flex, Heading, Button, Box, TextField, TextArea, Card, Grid, Text, IconButton, Callout, Avatar, Dialog, AlertDialog } from "@radix-ui/themes";
 import { PlusIcon, TrashIcon, ExitIcon, InfoCircledIcon, LockClosedIcon, GearIcon, GridIcon, ListBulletIcon, Pencil1Icon, Cross2Icon, ImageIcon } from "@radix-ui/react-icons";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useContext } from "react";
 import { useLocation } from "wouter";
+import { ThemeContext } from "./ThemeProvider";
 import "./Home.css";
 
 export default function Home({ session }) {
@@ -10,6 +11,7 @@ export default function Home({ session }) {
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [viewMode, setViewMode] = useState('grid');
   const [, setLocation] = useLocation();
+  const { fontSize, titleFontSize, noteColor } = useContext(ThemeContext);
 
   const [notes, setNotes] = useState([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -131,7 +133,6 @@ export default function Home({ session }) {
     if (autosaveTimeoutRef.current) clearTimeout(autosaveTimeoutRef.current);
     autosaveTimeoutRef.current = setTimeout(async () => {
       if (isSavingRef.current) {
-        // Reschedule if an operation is currently in flight
         triggerAutosave();
         return;
       }
@@ -162,7 +163,6 @@ export default function Home({ session }) {
   const handleDialogChange = (open) => {
     setIsDialogOpen(open);
     if (!open) {
-      // Force an immediate save on close if there's a pending autosave and we aren't saving right now
       if (autosaveTimeoutRef.current) {
         clearTimeout(autosaveTimeoutRef.current);
         if (!isSavingRef.current) {
@@ -300,15 +300,15 @@ export default function Home({ session }) {
       ) : viewMode === 'grid' ? (
         <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="4">
           {notes.map(note => (
-            <Card key={note.id} size="2" variant="surface" className="note-card-hover" onClick={() => handleEditClick(note)} style={{ display: 'flex', flexDirection: 'column', height: '320px' }}>
-              <Heading size="6" mb="2" truncate style={{ flexShrink: 0 }}>{note.title}</Heading>
+            <Card key={note.id} size="2" variant="surface" className="note-card-hover" onClick={() => handleEditClick(note)} style={{ display: 'flex', flexDirection: 'column', height: '320px', backgroundColor: noteColor === 'surface' ? undefined : `var(--${noteColor}-3)` }}>
+              <Heading size="6" mb="2" truncate style={{ flexShrink: 0, fontSize: `${titleFontSize}px`, lineHeight: 1.2 }}>{note.title}</Heading>
               {note.image_urls && note.image_urls.length > 0 && (
                 <Box style={{ flexShrink: 0, height: '120px', width: '100%', marginBottom: '12px', borderRadius: '6px', overflow: 'hidden' }}>
                   <img src={note.image_urls[0]} alt="cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </Box>
               )}
               <Box style={{ flexGrow: 1, flexShrink: 1, overflow: 'hidden', marginBottom: '1rem' }}>
-                <Text as="p" size="3" color="gray" className="preview-content-grid">
+                <Text as="p" color="gray" className="preview-content-grid" style={{ fontSize: `${fontSize}px` }}>
                   {note.content}
                 </Text>
               </Box>
@@ -352,11 +352,11 @@ export default function Home({ session }) {
       ) : (
         <Flex direction="column" gap="4">
           {notes.map(note => (
-            <Card key={note.id} size="2" variant="surface" className="note-card-hover" onClick={() => handleEditClick(note)}>
+            <Card key={note.id} size="2" variant="surface" className="note-card-hover" onClick={() => handleEditClick(note)} style={{ backgroundColor: noteColor === 'surface' ? undefined : `var(--${noteColor}-3)` }}>
               <Flex justify="between" align="start">
                 <Box style={{ flexGrow: 1, minWidth: 0 }}>
-                  <Heading size="6" mb="2" truncate>{note.title}</Heading>
-                  <Text as="p" size="3" color="gray" mb="2" className="preview-content-list">
+                  <Heading size="6" mb="2" truncate style={{ fontSize: `${titleFontSize}px`, lineHeight: 1.2 }}>{note.title}</Heading>
+                  <Text as="p" color="gray" mb="2" className="preview-content-list" style={{ fontSize: `${fontSize}px` }}>
                     {note.content}
                   </Text>
                   {note.image_urls && note.image_urls.length > 0 && (
@@ -402,7 +402,7 @@ export default function Home({ session }) {
       )}
 
       <Dialog.Root open={isDialogOpen} onOpenChange={handleDialogChange}>
-        <Dialog.Content maxWidth="800px" style={{ padding: '3rem 4rem', minHeight: '70vh', display: 'flex', flexDirection: 'column' }}>
+        <Dialog.Content maxWidth="800px" style={{ padding: '3rem 4rem', minHeight: '70vh', display: 'flex', flexDirection: 'column', backgroundColor: noteColor === 'surface' ? undefined : `var(--${noteColor}-2)` }}>
           <Dialog.Title style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', border: 0 }}>
             {editingNoteId ? 'Edit Note' : 'Add Note'}
           </Dialog.Title>
@@ -428,6 +428,7 @@ export default function Home({ session }) {
               onChange={handleTitleChange}
               placeholder="Untitled"
               className="notion-title-input"
+              style={{ fontSize: `${titleFontSize}px` }}
             />
             <textarea
               ref={(el) => {
@@ -440,6 +441,7 @@ export default function Home({ session }) {
               onChange={handleContentChange}
               placeholder="Start typing..."
               className="notion-content-input"
+              style={{ fontSize: `${fontSize}px` }}
               rows={1}
             />
             

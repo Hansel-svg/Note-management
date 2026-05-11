@@ -7,13 +7,8 @@ import { supabase } from "./SupaBaseClient";
 
 export default function Preferences({ session }) {
   const [, setLocation] = useLocation();
-  const { theme, toggleTheme } = useContext(ThemeContext);
-  
-  // Non-functional states for now
-  const [fontSize, setFontSize] = useState([16]);
-  const [noteColor, setNoteColor] = useState("yellow");
+  const { theme, toggleTheme, fontSize, updateFontSize, titleFontSize, updateTitleFontSize, noteColor, updateNoteColor } = useContext(ThemeContext);
 
-  // Profile picture states
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
@@ -45,19 +40,16 @@ export default function Preferences({ session }) {
       const fileExt = file.name.split('.').pop();
       const fileName = `${session.user.id}/${Date.now()}.${fileExt}`;
 
-      // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(fileName);
 
-      // Update profiles table
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
@@ -143,13 +135,13 @@ export default function Preferences({ session }) {
             <Flex justify="between" align="center" mb="3">
               <Box>
                 <Text as="div" size="4" weight="bold" mb="1">Note Font Size</Text>
-                <Text as="div" size="2" color="gray">Adjust the text size in your notes (Coming Soon)</Text>
+                <Text as="div" size="2" color="gray">Adjust the text size in your notes</Text>
               </Box>
               <Text size="3" weight="bold">{fontSize}px</Text>
             </Flex>
             <Slider 
-              value={fontSize} 
-              onValueChange={setFontSize} 
+              value={[fontSize]} 
+              onValueChange={(val) => updateFontSize(val[0])} 
               min={12} 
               max={24} 
               step={1} 
@@ -158,15 +150,34 @@ export default function Preferences({ session }) {
           </Box>
 
           <Box>
+            <Flex justify="between" align="center" mb="3">
+              <Box>
+                <Text as="div" size="4" weight="bold" mb="1">Title Font Size</Text>
+                <Text as="div" size="2" color="gray">Adjust the text size for note titles</Text>
+              </Box>
+              <Text size="3" weight="bold">{titleFontSize}px</Text>
+            </Flex>
+            <Slider 
+              value={[titleFontSize]} 
+              onValueChange={(val) => updateTitleFontSize(val[0])} 
+              min={16} 
+              max={48} 
+              step={1} 
+              style={{ cursor: "pointer" }}
+            />
+          </Box>
+
+          <Box>
             <Flex justify="between" align="center">
               <Box>
-                <Text as="div" size="4" weight="bold" mb="1">Default Note Color</Text>
-                <Text as="div" size="2" color="gray">Choose the default background color for new notes (Coming Soon)</Text>
+                <Text as="div" size="4" weight="bold" mb="1">Note Color</Text>
+                <Text as="div" size="2" color="gray">Choose the background color for all notes</Text>
               </Box>
-              <Select.Root value={noteColor} onValueChange={setNoteColor}>
+              <Select.Root value={noteColor} onValueChange={updateNoteColor}>
                 <Select.Trigger style={{ width: "120px", cursor: "pointer" }} />
                 <Select.Content>
                   <Select.Group>
+                    <Select.Item value="surface" style={{ cursor: "pointer" }}>Default</Select.Item>
                     <Select.Item value="yellow" style={{ cursor: "pointer" }}>Yellow</Select.Item>
                     <Select.Item value="blue" style={{ cursor: "pointer" }}>Blue</Select.Item>
                     <Select.Item value="green" style={{ cursor: "pointer" }}>Green</Select.Item>

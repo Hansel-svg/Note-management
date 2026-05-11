@@ -5,6 +5,9 @@ export const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState('dark');
+  const [fontSize, setFontSize] = useState(16);
+  const [titleFontSize, setTitleFontSize] = useState(32);
+  const [noteColor, setNoteColor] = useState('surface');
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('app-theme');
@@ -15,6 +18,15 @@ export function ThemeProvider({ children }) {
         setTheme('light');
       }
     }
+
+    const savedFontSize = localStorage.getItem('app-font-size');
+    if (savedFontSize) setFontSize(parseInt(savedFontSize, 10));
+
+    const savedTitleFontSize = localStorage.getItem('app-title-font-size');
+    if (savedTitleFontSize) setTitleFontSize(parseInt(savedTitleFontSize, 10));
+
+    const savedNoteColor = localStorage.getItem('app-note-color');
+    if (savedNoteColor) setNoteColor(savedNoteColor);
   }, []);
 
   const toggleTheme = () => {
@@ -23,8 +35,23 @@ export function ThemeProvider({ children }) {
     localStorage.setItem('app-theme', newTheme);
   };
 
+  const updateFontSize = (size) => {
+    setFontSize(size);
+    localStorage.setItem('app-font-size', size.toString());
+  };
+
+  const updateTitleFontSize = (size) => {
+    setTitleFontSize(size);
+    localStorage.setItem('app-title-font-size', size.toString());
+  };
+
+  const updateNoteColor = (color) => {
+    setNoteColor(color);
+    localStorage.setItem('app-note-color', color);
+  };
+
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, fontSize, updateFontSize, titleFontSize, updateTitleFontSize, noteColor, updateNoteColor }}>
       <Theme 
         appearance={theme} 
         accentColor="cyan" 
