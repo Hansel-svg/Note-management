@@ -1,6 +1,6 @@
 import { supabase } from "./SupaBaseClient";
 import { Container, Flex, Heading, Button, Box, TextField, TextArea, Card, Grid, Text, IconButton, Callout, Avatar, Dialog, AlertDialog } from "@radix-ui/themes";
-import { PlusIcon, TrashIcon, ExitIcon, InfoCircledIcon, LockClosedIcon, GearIcon, GridIcon, ListBulletIcon, Pencil1Icon, Cross2Icon, ImageIcon, DrawingPinIcon, DrawingPinFilledIcon } from "@radix-ui/react-icons";
+import { PlusIcon, TrashIcon, ExitIcon, InfoCircledIcon, LockClosedIcon, GearIcon, GridIcon, ListBulletIcon, Pencil1Icon, Cross2Icon, ImageIcon, DrawingPinIcon, DrawingPinFilledIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import { useState, useEffect, useCallback, useRef, useContext } from "react";
 import { useLocation } from "wouter";
 import { ThemeContext } from "./ThemeProvider";
@@ -18,6 +18,15 @@ export default function Home({ session }) {
   const [noteTitle, setNoteTitle] = useState('');
   const [noteContent, setNoteContent] = useState('');
   const [editingNoteId, setEditingNoteId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
   const [isSaving, setIsSaving] = useState(false);
   const [noteImageUrls, setNoteImageUrls] = useState([]);
 
@@ -30,9 +39,13 @@ export default function Home({ session }) {
 
   const fetchNotes = useCallback(async () => {
     if (!session?.user?.id) return;
-    const { data, error } = await supabase
-      .from('notes')
-      .select('*')
+    let query = supabase.from('notes').select('*');
+
+    if (debouncedSearchTerm) {
+      query = query.or(`title.ilike.%${debouncedSearchTerm}%,content.ilike.%${debouncedSearchTerm}%`);
+    }
+
+    const { data, error } = await query
       .order('pinned_at', { ascending: false, nullsFirst: false })
       .order('updated_at', { ascending: false });
 
@@ -41,7 +54,7 @@ export default function Home({ session }) {
     } else {
       console.error("Error fetching notes:", error);
     }
-  }, [session]);
+  }, [session, debouncedSearchTerm]);
 
   const handleTogglePin = async (e, note) => {
     e.stopPropagation();
@@ -299,14 +312,25 @@ export default function Home({ session }) {
         </Flex>
       </Flex>
 
-      <Flex justify="between" align="center" mb="4">
+      <Flex justify="between" align="center" mb="4" wrap="wrap" gap="4">
         <Flex gap="3" align="center">
           <Heading size="6">Recent Notes</Heading>
           <Button onClick={openCreateDialog} color="cyan" variant="solid" style={{ cursor: 'pointer' }}>
             <PlusIcon /> Add Note
           </Button>
         </Flex>
-        <Flex gap="2">
+        <Flex gap="3" align="center" style={{ flexGrow: 1, justifyContent: 'flex-end' }}>
+          <TextField.Root 
+            placeholder="Search notes..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ width: '100%', maxWidth: '300px' }}
+          >
+            <TextField.Slot>
+              <MagnifyingGlassIcon height="16" width="16" />
+            </TextField.Slot>
+          </TextField.Root>
+          <Flex gap="2">
           <IconButton 
             variant={viewMode === 'grid' ? 'solid' : 'soft'} 
             color="cyan" 
@@ -325,9 +349,12 @@ export default function Home({ session }) {
           </IconButton>
         </Flex>
       </Flex>
+      </Flex>
 
       {notes.length === 0 ? (
-        <Text color="gray" size="3">No notes yet. Click "Add Note" to create one!</Text>
+        <Text color="gray" size="3">
+          {debouncedSearchTerm ? `No notes found matching "${debouncedSearchTerm}".` : 'No notes yet. Click "Add Note" to create one!'}
+        </Text>
       ) : viewMode === 'grid' ? (
         <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="4">
           {notes.map(note => (
