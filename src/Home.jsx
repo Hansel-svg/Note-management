@@ -11,7 +11,7 @@ export default function Home({ session }) {
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [viewMode, setViewMode] = useState('grid');
   const [, setLocation] = useLocation();
-  const { fontSize, titleFontSize, noteColor } = useContext(ThemeContext);
+  const { fontSize, titleFontSize, noteColor, updateFontSize, updateTitleFontSize, updateNoteColor } = useContext(ThemeContext);
 
   const [notes, setNotes] = useState([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -48,7 +48,7 @@ export default function Home({ session }) {
       
       const { data, error } = await supabase
         .from('profiles')
-        .select('is_verified, avatar_url')
+        .select('is_verified, avatar_url, default_font_size, default_title_font_size, default_note_color')
         .eq('id', session.user.id)
         .single();
         
@@ -57,6 +57,9 @@ export default function Home({ session }) {
         if (data.avatar_url) {
           setAvatarUrl(data.avatar_url);
         }
+        if (data.default_font_size) updateFontSize(data.default_font_size);
+        if (data.default_title_font_size) updateTitleFontSize(data.default_title_font_size);
+        if (data.default_note_color) updateNoteColor(data.default_note_color);
       }
     }
     

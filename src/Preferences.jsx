@@ -18,12 +18,15 @@ export default function Preferences({ session }) {
       if (!session?.user?.id) return;
       const { data, error } = await supabase
         .from('profiles')
-        .select('avatar_url')
+        .select('avatar_url, default_font_size, default_title_font_size, default_note_color')
         .eq('id', session.user.id)
         .single();
         
-      if (!error && data?.avatar_url) {
-        setAvatarUrl(data.avatar_url);
+      if (!error && data) {
+        if (data.avatar_url) setAvatarUrl(data.avatar_url);
+        if (data.default_font_size) updateFontSize(data.default_font_size);
+        if (data.default_title_font_size) updateTitleFontSize(data.default_title_font_size);
+        if (data.default_note_color) updateNoteColor(data.default_note_color);
       }
     }
     loadProfile();
@@ -142,6 +145,11 @@ export default function Preferences({ session }) {
             <Slider 
               value={[fontSize]} 
               onValueChange={(val) => updateFontSize(val[0])} 
+              onValueCommit={async (val) => {
+                if (session?.user?.id) {
+                  await supabase.from('profiles').update({ default_font_size: val[0] }).eq('id', session.user.id);
+                }
+              }}
               min={12} 
               max={24} 
               step={1} 
@@ -160,6 +168,11 @@ export default function Preferences({ session }) {
             <Slider 
               value={[titleFontSize]} 
               onValueChange={(val) => updateTitleFontSize(val[0])} 
+              onValueCommit={async (val) => {
+                if (session?.user?.id) {
+                  await supabase.from('profiles').update({ default_title_font_size: val[0] }).eq('id', session.user.id);
+                }
+              }}
               min={16} 
               max={48} 
               step={1} 
@@ -173,7 +186,12 @@ export default function Preferences({ session }) {
                 <Text as="div" size="4" weight="bold" mb="1">Note Color</Text>
                 <Text as="div" size="2" color="gray">Choose the background color for all notes</Text>
               </Box>
-              <Select.Root value={noteColor} onValueChange={updateNoteColor}>
+              <Select.Root value={noteColor} onValueChange={async (val) => {
+                updateNoteColor(val);
+                if (session?.user?.id) {
+                  await supabase.from('profiles').update({ default_note_color: val }).eq('id', session.user.id);
+                }
+              }}>
                 <Select.Trigger style={{ width: "120px", cursor: "pointer" }} />
                 <Select.Content>
                   <Select.Group>
