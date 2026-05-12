@@ -1,10 +1,19 @@
 import { supabase } from "./SupaBaseClient";
-import { Container, Flex, Heading, Button, Box, TextField, TextArea, Card, Grid, Text, IconButton, Callout, Avatar, Dialog, AlertDialog, Tabs } from "@radix-ui/themes";
-import { PlusIcon, TrashIcon, ExitIcon, InfoCircledIcon, LockClosedIcon, GearIcon, GridIcon, ListBulletIcon, Pencil1Icon, Cross2Icon, ImageIcon, DrawingPinIcon, DrawingPinFilledIcon, MagnifyingGlassIcon, LockOpen2Icon } from "@radix-ui/react-icons";
+import { Container, Flex, Grid, Text, Box, Callout } from "@radix-ui/themes";
+import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { useState, useEffect, useCallback, useRef, useContext } from "react";
 import { useLocation } from "wouter";
 import { ThemeContext } from "./ThemeProvider";
 import "./Home.css";
+
+import DashboardHeader from "./components/DashboardHeader";
+import LabelFilterBar from "./components/LabelFilterBar";
+import NoteCard from "./components/NoteCard";
+import DeleteConfirmDialog from "./components/dialogs/DeleteConfirmDialog";
+import UnlockDialog from "./components/dialogs/UnlockDialog";
+import ManageLockDialog from "./components/dialogs/ManageLockDialog";
+import LabelManagerDialog from "./components/dialogs/LabelManagerDialog";
+import NoteEditorDialog from "./components/dialogs/NoteEditorDialog";
 async function hashPassword(password) {
   const msgUint8 = new TextEncoder().encode(password);
   const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
@@ -491,95 +500,25 @@ export default function Home({ session }) {
         </Box>
       )}
 
-      <Flex justify="between" align="center" mb="6">
-        <Heading size="8" as="h1" style={{ background: 'linear-gradient(to right, var(--cyan-9), var(--blue-9))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          My Notes
-        </Heading>
-        <Flex gap="3" align="center">
-          <Avatar
-            size="3"
-            src={avatarUrl}
-            fallback={session?.user?.email?.charAt(0).toUpperCase() || "?"}
-            radius="full"
-          />
-          <Button variant="soft" color="gray" onClick={() => setLocation('/preferences')} style={{ cursor: "pointer" }}>
-            <GearIcon />
-            Preferences
-          </Button>
-          <Button variant="soft" color="cyan" onClick={() => setLocation('/forgot-password')} style={{ cursor: "pointer" }}>
-            <LockClosedIcon />
-            Reset Password
-          </Button>
-          <Button variant="surface" color="gray" onClick={handleSignOut} style={{ cursor: "pointer" }}>
-            <ExitIcon />
-            Sign Out
-          </Button>
-        </Flex>
-      </Flex>
+      <DashboardHeader 
+        isVerified={isVerified}
+        avatarUrl={avatarUrl}
+        session={session}
+        setLocation={setLocation}
+        handleSignOut={handleSignOut}
+        openCreateDialog={openCreateDialog}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+      />
 
-      <Flex justify="between" align="center" mb="4" wrap="wrap" gap="4">
-        <Flex gap="3" align="center">
-          <Heading size="6">Recent Notes</Heading>
-          <Button onClick={openCreateDialog} color="cyan" variant="solid" style={{ cursor: 'pointer' }}>
-            <PlusIcon /> Add Note
-          </Button>
-        </Flex>
-        <Flex gap="3" align="center" style={{ flexGrow: 1, justifyContent: 'flex-end' }}>
-          <TextField.Root 
-            placeholder="Search notes..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: '100%', maxWidth: '300px' }}
-            autoComplete="off"
-          >
-            <TextField.Slot>
-              <MagnifyingGlassIcon height="16" width="16" />
-            </TextField.Slot>
-          </TextField.Root>
-          <Flex gap="2">
-          <IconButton 
-            variant={viewMode === 'grid' ? 'solid' : 'soft'} 
-            color="cyan" 
-            onClick={() => setViewMode('grid')}
-            style={{ cursor: 'pointer' }}
-          >
-            <GridIcon />
-          </IconButton>
-          <IconButton 
-            variant={viewMode === 'list' ? 'solid' : 'soft'} 
-            color="cyan" 
-            onClick={() => setViewMode('list')}
-            style={{ cursor: 'pointer' }}
-          >
-            <ListBulletIcon />
-          </IconButton>
-        </Flex>
-      </Flex>
-      </Flex>
-
-      <Flex gap="2" mb="4" wrap="wrap" align="center">
-        <Button 
-          variant="soft" 
-          color="gray" 
-          onClick={() => setIsLabelManagerOpen(true)}
-          style={{ cursor: 'pointer', borderRadius: '16px' }}
-          size="1"
-        >
-          <GearIcon /> Manage Labels
-        </Button>
-        {labels.map(label => (
-          <Button 
-            key={label.id} 
-            variant={activeFilterLabels.includes(label.id) ? "solid" : "soft"} 
-            color="cyan" 
-            onClick={() => toggleFilterLabel(label.id)}
-            style={{ cursor: 'pointer', borderRadius: '16px' }}
-            size="1"
-          >
-            {label.name}
-          </Button>
-        ))}
-      </Flex>
+      <LabelFilterBar 
+        labels={labels}
+        activeFilterLabels={activeFilterLabels}
+        toggleFilterLabel={toggleFilterLabel}
+        setIsLabelManagerOpen={setIsLabelManagerOpen}
+      />
 
       {notes.length === 0 ? (
         <Text color="gray" size="3">No notes yet. Click "Add Note" to create one!</Text>
@@ -590,389 +529,112 @@ export default function Home({ session }) {
       ) : viewMode === 'grid' ? (
         <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="4">
           {filteredNotes.map(note => (
-            <Card key={note.id} size="2" variant="surface" className="note-card-hover" onClick={() => handleEditClick(note)} style={{ display: 'flex', flexDirection: 'column', height: '320px', backgroundColor: noteColor === 'surface' ? undefined : `var(--${noteColor}-3)` }}>
-              {note.password_hash && !unlockedNotes.includes(note.id) ? (
-                <Flex direction="column" align="center" justify="center" style={{ flexGrow: 1, height: '100%' }}>
-                  <LockClosedIcon width="48" height="48" color="var(--gray-8)" style={{ marginBottom: '16px' }} />
-                  <Heading size="6" color="gray">Locked Note</Heading>
-                  <Text size="2" color="gray" mt="2">Click to enter password</Text>
-                </Flex>
-              ) : (
-                <>
-                  <Heading size="6" mb="2" truncate style={{ flexShrink: 0, fontSize: `${titleFontSize}px`, lineHeight: 1.2 }}>{note.title}</Heading>
-                  {note.note_labels && note.note_labels.length > 0 && (
-                    <Flex gap="1" mb="2" wrap="wrap" style={{ flexShrink: 0 }}>
-                      {note.note_labels.map(nl => (
-                        <Text key={nl.labels.id} size="1" style={{ backgroundColor: 'var(--cyan-3)', color: 'var(--cyan-11)', padding: '2px 6px', borderRadius: '4px' }}>
-                          {nl.labels.name}
-                        </Text>
-                      ))}
-                    </Flex>
-                  )}
-                  {note.image_urls && note.image_urls.length > 0 && (
-                    <Box style={{ flexShrink: 0, height: '120px', width: '100%', marginBottom: '12px', borderRadius: '6px', overflow: 'hidden' }}>
-                      <img src={note.image_urls[0]} alt="cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </Box>
-                  )}
-                  <Box style={{ flexGrow: 1, flexShrink: 1, overflow: 'hidden', marginBottom: '1rem' }}>
-                    <Text as="p" color="gray" className="preview-content-grid" style={{ fontSize: `${fontSize}px` }}>
-                      {note.content}
-                    </Text>
-                  </Box>
-                  <Flex justify="between" align="center" mt="auto" pt="4" style={{ flexShrink: 0 }}>
-                    <Flex gap="3" align="center">
-                      {note.image_urls && note.image_urls.length > 0 && (
-                        <Flex gap="1" align="center">
-                          <ImageIcon color="gray" />
-                          <Text size="1" color="gray">{note.image_urls.length}</Text>
-                        </Flex>
-                      )}
-                    </Flex>
-                    <Flex gap="2" onClick={(e) => e.stopPropagation()}>
-                      <IconButton variant="soft" color={note.pinned_at ? "cyan" : "gray"} size="2" onClick={(e) => handleTogglePin(e, note)} style={{ cursor: "pointer" }}>
-                        {note.pinned_at ? <DrawingPinFilledIcon /> : <DrawingPinIcon />}
-                      </IconButton>
-                      <IconButton color="red" variant="soft" size="2" style={{ cursor: "pointer" }} onClick={(e) => handleDeleteClick(e, note)}>
-                        <TrashIcon />
-                      </IconButton>
-                    </Flex>
-                  </Flex>
-                </>
-              )}
-            </Card>
+            <NoteCard 
+              key={note.id} 
+              note={note} 
+              viewMode="grid"
+              noteColor={noteColor}
+              titleFontSize={titleFontSize}
+              fontSize={fontSize}
+              unlockedNotes={unlockedNotes}
+              handleEditClick={handleEditClick}
+              handleTogglePin={handleTogglePin}
+              handleDeleteClick={handleDeleteClick}
+            />
           ))}
         </Grid>
       ) : (
         <Flex direction="column" gap="4">
           {filteredNotes.map(note => (
-            <Card key={note.id} size="2" variant="surface" className="note-card-hover" onClick={() => handleEditClick(note)} style={{ backgroundColor: noteColor === 'surface' ? undefined : `var(--${noteColor}-3)` }}>
-              {note.password_hash && !unlockedNotes.includes(note.id) ? (
-                <Flex align="center" gap="4">
-                  <LockClosedIcon width="24" height="24" color="var(--gray-8)" />
-                  <Heading size="6" color="gray">Locked Note</Heading>
-                  <Text size="2" color="gray">Click to enter password</Text>
-                  <Flex gap="2" onClick={(e) => e.stopPropagation()} style={{ marginLeft: 'auto' }}>
-                    <IconButton color="red" variant="soft" size="2" style={{ cursor: "pointer" }} onClick={(e) => handleDeleteClick(e, note)}>
-                      <TrashIcon />
-                    </IconButton>
-                  </Flex>
-                </Flex>
-              ) : (
-                <Flex justify="between" align="start">
-                  <Box style={{ flexGrow: 1, minWidth: 0 }}>
-                    <Heading size="6" mb="2" truncate style={{ fontSize: `${titleFontSize}px`, lineHeight: 1.2 }}>{note.title}</Heading>
-                    {note.note_labels && note.note_labels.length > 0 && (
-                      <Flex gap="1" mb="2" wrap="wrap" style={{ flexShrink: 0 }}>
-                        {note.note_labels.map(nl => (
-                          <Text key={nl.labels.id} size="1" style={{ backgroundColor: 'var(--cyan-3)', color: 'var(--cyan-11)', padding: '2px 6px', borderRadius: '4px' }}>
-                            {nl.labels.name}
-                          </Text>
-                        ))}
-                      </Flex>
-                    )}
-                    <Text as="p" color="gray" mb="2" className="preview-content-list" style={{ fontSize: `${fontSize}px` }}>
-                      {note.content}
-                    </Text>
-                    {note.image_urls && note.image_urls.length > 0 && (
-                      <Flex gap="1" align="center" mb="2">
-                        <ImageIcon color="gray" />
-                        <Text size="1" color="gray">{note.image_urls.length} attachment{note.image_urls.length > 1 ? 's' : ''}</Text>
-                      </Flex>
-                    )}
-                  </Box>
-                  {note.image_urls && note.image_urls.length > 0 && (
-                    <Box style={{ flexShrink: 0, width: '80px', height: '80px', borderRadius: '6px', overflow: 'hidden', marginLeft: '16px' }}>
-                      <img src={note.image_urls[0]} alt="cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </Box>
-                  )}
-                  <Flex gap="2" onClick={(e) => e.stopPropagation()} style={{ marginLeft: '16px' }}>
-                    <IconButton variant="soft" color={note.pinned_at ? "cyan" : "gray"} size="2" onClick={(e) => handleTogglePin(e, note)} style={{ cursor: "pointer" }}>
-                      {note.pinned_at ? <DrawingPinFilledIcon /> : <DrawingPinIcon />}
-                    </IconButton>
-                    <IconButton color="red" variant="soft" size="2" style={{ cursor: "pointer" }} onClick={(e) => handleDeleteClick(e, note)}>
-                      <TrashIcon />
-                    </IconButton>
-                  </Flex>
-                </Flex>
-              )}
-            </Card>
+            <NoteCard 
+              key={note.id} 
+              note={note} 
+              viewMode="list"
+              noteColor={noteColor}
+              titleFontSize={titleFontSize}
+              fontSize={fontSize}
+              unlockedNotes={unlockedNotes}
+              handleEditClick={handleEditClick}
+              handleTogglePin={handleTogglePin}
+              handleDeleteClick={handleDeleteClick}
+            />
           ))}
         </Flex>
       )}
 
-      <Dialog.Root open={isDialogOpen} onOpenChange={handleDialogChange}>
-        <Dialog.Content maxWidth="800px" style={{ padding: '3rem 4rem', minHeight: '70vh', display: 'flex', flexDirection: 'column', backgroundColor: noteColor === 'surface' ? undefined : `var(--${noteColor}-2)` }}>
-          <Dialog.Title style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', border: 0 }}>
-            {editingNoteId ? 'Edit Note' : 'Add Note'}
-          </Dialog.Title>
-          <Dialog.Description style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', border: 0 }}>
-            {editingNoteId ? 'Make changes to your note below.' : 'Create a new note.'}
-          </Dialog.Description>
+      <NoteEditorDialog 
+        open={isDialogOpen}
+        onOpenChange={handleDialogChange}
+        noteColor={noteColor}
+        titleFontSize={titleFontSize}
+        fontSize={fontSize}
+        editingNoteId={editingNoteId}
+        isSaving={isSaving}
+        noteTitle={noteTitle}
+        handleTitleChange={handleTitleChange}
+        noteContent={noteContent}
+        handleContentChange={handleContentChange}
+        noteImageUrls={noteImageUrls}
+        handleImageUpload={handleImageUpload}
+        handleRemoveImage={handleRemoveImage}
+        labels={labels}
+        selectedNoteLabels={selectedNoteLabels}
+        handleToggleNoteLabel={handleToggleNoteLabel}
+        hasPassword={!!notes.find(n => n.id === currentNoteIdRef.current)?.password_hash}
+        onManageLockClick={() => {
+          setManageLockCurrentPassword('');
+          setManageLockNewPassword('');
+          setManageLockConfirmPassword('');
+          setManageLockError('');
+          setIsManageLockOpen(true);
+        }}
+      />
 
-          <Flex justify="between" align="center" mb="5">
-            <Text color="gray" size="2">
-              {editingNoteId ? 'Editing Note' : 'New Note'}
-              {isSaving && <Text color="cyan" ml="2">Saving...</Text>}
-            </Text>
-            <Flex gap="3" align="center">
-              {editingNoteId && (
-                <IconButton 
-                  variant="ghost" 
-                  color={notes.find(n => n.id === editingNoteId)?.password_hash ? "cyan" : "gray"}
-                  onClick={() => {
-                    setManageLockCurrentPassword('');
-                    setManageLockNewPassword('');
-                    setManageLockConfirmPassword('');
-                    setManageLockError('');
-                    setIsManageLockOpen(true);
-                  }}
-                  style={{ cursor: 'pointer' }}
-                  title={notes.find(n => n.id === editingNoteId)?.password_hash ? "Manage Lock" : "Lock Note"}
-                >
-                  {notes.find(n => n.id === editingNoteId)?.password_hash ? <LockClosedIcon /> : <LockOpen2Icon />}
-                </IconButton>
-              )}
-              <Dialog.Close>
-                <IconButton variant="ghost" color="gray" style={{ cursor: 'pointer' }}>
-                  <Cross2Icon width="20" height="20" />
-                </IconButton>
-              </Dialog.Close>
-            </Flex>
-          </Flex>
+      <LabelManagerDialog 
+        open={isLabelManagerOpen}
+        onOpenChange={setIsLabelManagerOpen}
+        noteColor={noteColor}
+        newLabelName={newLabelName}
+        setNewLabelName={setNewLabelName}
+        onCreateLabel={handleCreateLabel}
+        labels={labels}
+        onRenameLabel={handleRenameLabel}
+        onDeleteLabel={handleDeleteLabel}
+      />
 
-          <Flex direction="column" gap="4" style={{ flexGrow: 1 }}>
-            {labels.length > 0 && (
-              <Flex gap="2" wrap="wrap">
-                {labels.map(label => (
-                  <Button
-                    key={label.id}
-                    variant={selectedNoteLabels.includes(label.id) ? "solid" : "soft"}
-                    color="cyan"
-                    size="1"
-                    onClick={() => handleToggleNoteLabel(label.id)}
-                    style={{ cursor: 'pointer', borderRadius: '16px' }}
-                  >
-                    {label.name}
-                  </Button>
-                ))}
-              </Flex>
-            )}
-            <input
-              value={noteTitle}
-              onChange={handleTitleChange}
-              placeholder="Untitled"
-              className="notion-title-input"
-              style={{ fontSize: `${titleFontSize}px` }}
-            />
-            <textarea
-              ref={(el) => {
-                if (el) {
-                  el.style.height = 'auto';
-                  el.style.height = el.scrollHeight + 'px';
-                }
-              }}
-              value={noteContent}
-              onChange={handleContentChange}
-              placeholder="Start typing..."
-              className="notion-content-input"
-              style={{ fontSize: `${fontSize}px` }}
-              rows={1}
-            />
-            
-            {noteImageUrls.length > 0 && (
-              <Grid columns="3" gap="3" mt="4">
-                {noteImageUrls.map((url, idx) => (
-                  <Box key={idx} style={{ position: 'relative', aspectRatio: '1', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--gray-5)' }}>
-                    <img src={url} alt={`attachment-${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    <IconButton 
-                      size="1" 
-                      color="red" 
-                      variant="solid" 
-                      style={{ position: 'absolute', top: 6, right: 6, cursor: 'pointer', zIndex: 10 }}
-                      onClick={() => handleRemoveImage(url)}
-                    >
-                      <Cross2Icon />
-                    </IconButton>
-                  </Box>
-                ))}
-              </Grid>
-            )}
-          </Flex>
+      <DeleteConfirmDialog 
+        open={!!deleteConfirmNoteId}
+        onOpenChange={(open) => !open && setDeleteConfirmNoteId(null)}
+        noteColor={noteColor}
+        onDelete={() => { handleDeleteNote(deleteConfirmNoteId); setDeleteConfirmNoteId(null); }}
+      />
 
-          <Flex justify="start" mt="4">
-            <input 
-              type="file" 
-              id="image-upload" 
-              multiple 
-              accept="image/*" 
-              style={{ display: 'none' }} 
-              onChange={handleImageUpload} 
-            />
-            <label htmlFor="image-upload">
-              <Button asChild variant="soft" color="gray" style={{ cursor: 'pointer' }}>
-                <span><ImageIcon /> Add Image</span>
-              </Button>
-            </label>
-          </Flex>
-        </Dialog.Content>
-      </Dialog.Root>
+      <UnlockDialog 
+        open={unlockDialogOpen}
+        onOpenChange={(open) => !open && setUnlockDialogOpen(false)}
+        noteColor={noteColor}
+        unlockAction={unlockAction}
+        unlockError={unlockError}
+        unlockPassword={unlockPassword}
+        setUnlockPassword={setUnlockPassword}
+        onSubmit={submitUnlock}
+      />
 
-      <Dialog.Root open={isLabelManagerOpen} onOpenChange={setIsLabelManagerOpen}>
-        <Dialog.Content maxWidth="450px" style={{ backgroundColor: noteColor === 'surface' ? undefined : `var(--${noteColor}-2)` }}>
-          <Dialog.Title>Manage Labels</Dialog.Title>
-          <Dialog.Description size="2" color="gray" mb="4">
-            Create, rename, or delete labels.
-          </Dialog.Description>
-          
-          <Flex gap="2" mb="5">
-            <TextField.Root 
-              placeholder="New label name..." 
-              value={newLabelName}
-              onChange={(e) => setNewLabelName(e.target.value)}
-              style={{ flexGrow: 1 }}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleCreateLabel(); }}
-            />
-            <Button onClick={handleCreateLabel} color="cyan" style={{ cursor: 'pointer' }}>Add</Button>
-          </Flex>
-
-          <Flex direction="column" gap="3">
-            {labels.map(label => (
-              <Flex key={label.id} justify="between" align="center" gap="3">
-                <TextField.Root 
-                  defaultValue={label.name}
-                  onBlur={(e) => {
-                    if (e.target.value !== label.name) {
-                      handleRenameLabel(label.id, e.target.value);
-                    }
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.target.blur();
-                    }
-                  }}
-                  style={{ flexGrow: 1 }}
-                />
-                <IconButton color="red" variant="soft" onClick={() => handleDeleteLabel(label.id)} style={{ cursor: 'pointer' }}>
-                  <TrashIcon />
-                </IconButton>
-              </Flex>
-            ))}
-            {labels.length === 0 && (
-              <Text size="2" color="gray" align="center">No labels created yet.</Text>
-            )}
-          </Flex>
-          
-          <Flex justify="end" mt="5">
-            <Dialog.Close>
-              <Button variant="soft" color="gray" style={{ cursor: 'pointer' }}>Close</Button>
-            </Dialog.Close>
-          </Flex>
-        </Dialog.Content>
-      </Dialog.Root>
-
-      <AlertDialog.Root open={!!deleteConfirmNoteId} onOpenChange={(open) => !open && setDeleteConfirmNoteId(null)}>
-        <AlertDialog.Content maxWidth="450px" style={{ backgroundColor: noteColor === 'surface' ? undefined : `var(--${noteColor}-2)` }}>
-          <AlertDialog.Title>Delete Note</AlertDialog.Title>
-          <AlertDialog.Description size="2">
-            Are you sure you want to delete this note? This action cannot be undone.
-          </AlertDialog.Description>
-          <Flex gap="3" mt="4" justify="end">
-            <AlertDialog.Cancel>
-              <Button variant="soft" color="gray" style={{ cursor: "pointer" }}>Cancel</Button>
-            </AlertDialog.Cancel>
-            <AlertDialog.Action>
-              <Button variant="solid" color="red" style={{ cursor: "pointer" }} onClick={() => { handleDeleteNote(deleteConfirmNoteId); setDeleteConfirmNoteId(null); }}>Delete</Button>
-            </AlertDialog.Action>
-          </Flex>
-        </AlertDialog.Content>
-      </AlertDialog.Root>
-
-      <Dialog.Root open={unlockDialogOpen} onOpenChange={(open) => !open && setUnlockDialogOpen(false)}>
-        <Dialog.Content maxWidth="400px" style={{ backgroundColor: noteColor === 'surface' ? undefined : `var(--${noteColor}-2)` }}>
-          <Dialog.Title>Unlock Note</Dialog.Title>
-          <Dialog.Description size="2" color="gray" mb="4">
-            This note is locked. Please enter the password to {unlockAction}.
-          </Dialog.Description>
-          {unlockError && (
-            <Callout.Root color="red" size="1" mb="3">
-              <Callout.Text>{unlockError}</Callout.Text>
-            </Callout.Root>
-          )}
-          <TextField.Root
-            type="password"
-            placeholder="Password"
-            value={unlockPassword}
-            onChange={(e) => setUnlockPassword(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') submitUnlock(); }}
-            mb="4"
-            autoComplete="new-password"
-          />
-          <Flex justify="end" gap="3">
-            <Dialog.Close>
-              <Button variant="soft" color="gray" style={{ cursor: 'pointer' }}>Cancel</Button>
-            </Dialog.Close>
-            <Button color="cyan" style={{ cursor: 'pointer' }} onClick={submitUnlock}>Unlock</Button>
-          </Flex>
-        </Dialog.Content>
-      </Dialog.Root>
-
-      <Dialog.Root open={isManageLockOpen} onOpenChange={setIsManageLockOpen}>
-        <Dialog.Content maxWidth="400px" style={{ backgroundColor: noteColor === 'surface' ? undefined : `var(--${noteColor}-2)` }}>
-          <Dialog.Title>{notes.find(n => n.id === currentNoteIdRef.current)?.password_hash ? 'Manage Lock' : 'Set Password'}</Dialog.Title>
-          {manageLockError && (
-            <Callout.Root color="red" size="1" mb="3">
-              <Callout.Text>{manageLockError}</Callout.Text>
-            </Callout.Root>
-          )}
-
-          {notes.find(n => n.id === currentNoteIdRef.current)?.password_hash ? (
-            <Tabs.Root defaultValue="change" onValueChange={() => { setManageLockError(''); setManageLockCurrentPassword(''); setManageLockNewPassword(''); setManageLockConfirmPassword(''); }}>
-              <Tabs.List size="1">
-                <Tabs.Trigger value="change" style={{ cursor: 'pointer' }}>Change Password</Tabs.Trigger>
-                <Tabs.Trigger value="remove" style={{ cursor: 'pointer' }}>Remove Lock</Tabs.Trigger>
-              </Tabs.List>
-              
-              <Box pt="4">
-                <Tabs.Content value="change">
-                  <Flex direction="column" gap="3">
-                    <TextField.Root type="password" placeholder="Current Password" value={manageLockCurrentPassword} onChange={(e) => setManageLockCurrentPassword(e.target.value)} autoComplete="new-password" />
-                    <TextField.Root type="password" placeholder="New Password" value={manageLockNewPassword} onChange={(e) => setManageLockNewPassword(e.target.value)} autoComplete="new-password" />
-                    <TextField.Root type="password" placeholder="Confirm New Password" value={manageLockConfirmPassword} onChange={(e) => setManageLockConfirmPassword(e.target.value)} autoComplete="new-password" />
-                    <Flex justify="between" mt="3" align="center">
-                      <Dialog.Close><Button variant="soft" color="gray" style={{ cursor: 'pointer' }}>Cancel</Button></Dialog.Close>
-                      <Button color="cyan" style={{ cursor: 'pointer' }} onClick={() => submitManageLock('change')}>Update Password</Button>
-                    </Flex>
-                  </Flex>
-                </Tabs.Content>
-                <Tabs.Content value="remove">
-                  <Flex direction="column" gap="3">
-                    <Text size="2" color="gray">Enter your current password to remove the lock.</Text>
-                    <TextField.Root type="password" placeholder="Current Password" value={manageLockCurrentPassword} onChange={(e) => setManageLockCurrentPassword(e.target.value)} autoComplete="new-password" />
-                    <Flex justify="between" mt="3" align="center">
-                      <Dialog.Close><Button variant="soft" color="gray" style={{ cursor: 'pointer' }}>Cancel</Button></Dialog.Close>
-                      <Button color="red" variant="soft" style={{ cursor: 'pointer' }} onClick={() => submitManageLock('remove')}>Remove Lock</Button>
-                    </Flex>
-                  </Flex>
-                </Tabs.Content>
-              </Box>
-            </Tabs.Root>
-          ) : (
-            <>
-              <Dialog.Description size="2" color="gray" mb="4">
-                Set a password to lock this note.
-              </Dialog.Description>
-              <Flex direction="column" gap="3">
-                <TextField.Root type="password" placeholder="New Password" value={manageLockNewPassword} onChange={(e) => setManageLockNewPassword(e.target.value)} autoComplete="new-password" />
-                <TextField.Root type="password" placeholder="Confirm New Password" value={manageLockConfirmPassword} onChange={(e) => setManageLockConfirmPassword(e.target.value)} autoComplete="new-password" />
-              </Flex>
-              <Flex justify="end" gap="3" mt="5">
-                <Dialog.Close><Button variant="soft" color="gray" style={{ cursor: 'pointer' }}>Cancel</Button></Dialog.Close>
-                <Button color="cyan" style={{ cursor: 'pointer' }} onClick={() => submitManageLock('set')}>Set Password</Button>
-              </Flex>
-            </>
-          )}
-        </Dialog.Content>
-      </Dialog.Root>
+      <ManageLockDialog 
+        open={isManageLockOpen}
+        onOpenChange={setIsManageLockOpen}
+        noteColor={noteColor}
+        hasPassword={!!notes.find(n => n.id === currentNoteIdRef.current)?.password_hash}
+        manageLockError={manageLockError}
+        setManageLockError={setManageLockError}
+        manageLockCurrentPassword={manageLockCurrentPassword}
+        setManageLockCurrentPassword={setManageLockCurrentPassword}
+        manageLockNewPassword={manageLockNewPassword}
+        setManageLockNewPassword={setManageLockNewPassword}
+        manageLockConfirmPassword={manageLockConfirmPassword}
+        setManageLockConfirmPassword={setManageLockConfirmPassword}
+        onSubmit={submitManageLock}
+      />
 
     </Container>
   );
