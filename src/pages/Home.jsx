@@ -14,6 +14,7 @@ import UnlockDialog from "../components/dialogs/UnlockDialog";
 import ManageLockDialog from "../components/dialogs/ManageLockDialog";
 import LabelManagerDialog from "../components/dialogs/LabelManagerDialog";
 import NoteEditorDialog from "../components/dialogs/NoteEditorDialog";
+import ShareNoteDialog from "../components/dialogs/ShareNoteDialog";
 async function hashPassword(password) {
   const msgUint8 = new TextEncoder().encode(password);
   const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
@@ -55,6 +56,11 @@ export default function Home({ session }) {
   const [manageLockNewPassword, setManageLockNewPassword] = useState('');
   const [manageLockConfirmPassword, setManageLockConfirmPassword] = useState('');
   const [manageLockError, setManageLockError] = useState('');
+
+  // Share dialog
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [shareTargetNoteId, setShareTargetNoteId] = useState(null);
+
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -359,6 +365,14 @@ export default function Home({ session }) {
     if (!title.trim() && !content.trim() && imageUrls.length === 0) return id;
     if (!session?.user?.id) return id;
     
+    // Permission check for existing notes
+    if (id) {
+      const note = notes.find(n => n.id === id);
+      const isOwner = note?.is_owner !== false;
+      const canEdit = isOwner || note?.share_permission === 'edit';
+      if (!canEdit) return id;
+    }
+
     isSavingRef.current = true;
     setIsSaving(true);
     let newId = id;
@@ -473,6 +487,11 @@ export default function Home({ session }) {
   };
 
   const handleDeleteNote = async (id) => {
+    const note = notes.find(n => n.id === id);
+    if (note && note.is_owner === false) {
+      console.error("Non-owners cannot delete shared notes.");
+      return;
+    }
     try {
       const { error } = await supabase
         .from('notes')
@@ -581,12 +600,18 @@ export default function Home({ session }) {
         selectedNoteLabels={selectedNoteLabels}
         handleToggleNoteLabel={handleToggleNoteLabel}
         hasPassword={!!notes.find(n => n.id === currentNoteIdRef.current)?.password_hash}
+        isOwner={notes.find(n => n.id === currentNoteIdRef.current)?.is_owner !== false}
+        sharePermission={notes.find(n => n.id === currentNoteIdRef.current)?.share_permission || null}
         onManageLockClick={() => {
           setManageLockCurrentPassword('');
           setManageLockNewPassword('');
           setManageLockConfirmPassword('');
           setManageLockError('');
           setIsManageLockOpen(true);
+        }}
+        onShareClick={() => {
+          setShareTargetNoteId(currentNoteIdRef.current);
+          setIsShareDialogOpen(true);
         }}
       />
 
@@ -634,6 +659,13 @@ export default function Home({ session }) {
         manageLockConfirmPassword={manageLockConfirmPassword}
         setManageLockConfirmPassword={setManageLockConfirmPassword}
         onSubmit={submitManageLock}
+      />
+
+      <ShareNoteDialog
+        open={isShareDialogOpen}
+        onOpenChange={setIsShareDialogOpen}
+        noteId={shareTargetNoteId}
+        noteColor={noteColor}
       />
 
     </Container>

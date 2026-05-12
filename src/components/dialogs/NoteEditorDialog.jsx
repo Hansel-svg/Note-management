@@ -1,5 +1,5 @@
-import { Dialog, Flex, Text, IconButton, Button, Box, Grid } from "@radix-ui/themes";
-import { Cross2Icon, LockClosedIcon, LockOpen2Icon, ImageIcon } from "@radix-ui/react-icons";
+import { Dialog, Flex, Text, IconButton, Button, Box, Grid, Callout } from "@radix-ui/themes";
+import { Cross2Icon, LockClosedIcon, LockOpen2Icon, ImageIcon, Share2Icon, EyeOpenIcon } from "@radix-ui/react-icons";
 
 export default function NoteEditorDialog({
   open,
@@ -20,8 +20,14 @@ export default function NoteEditorDialog({
   selectedNoteLabels,
   handleToggleNoteLabel,
   hasPassword,
-  onManageLockClick
+  onManageLockClick,
+  isOwner = true,
+  sharePermission = null,
+  onShareClick
 }) {
+  const isReadOnly = !isOwner && sharePermission === 'read';
+  const canEdit = isOwner || sharePermission === 'edit';
+
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Content 
@@ -34,12 +40,33 @@ export default function NoteEditorDialog({
         }}
       >
         <Flex justify="between" align="center" mb="5">
-          <Text color="gray" size="2">
-            {editingNoteId ? 'Editing Note' : 'New Note'}
-            {isSaving && <Text color="cyan" ml="2">Saving...</Text>}
-          </Text>
+          <Flex align="center" gap="3">
+            <Text color="gray" size="2">
+              {editingNoteId ? (isOwner ? 'Editing Note' : 'Shared Note') : 'New Note'}
+              {isSaving && <Text color="cyan" ml="2">Saving...</Text>}
+            </Text>
+            {isReadOnly && (
+              <Flex align="center" gap="1" style={{ color: 'var(--gray-10)' }}>
+                <EyeOpenIcon />
+                <Text size="1" color="gray">Read Only</Text>
+              </Flex>
+            )}
+          </Flex>
           <Flex gap="3" align="center">
-            {editingNoteId && (
+            {/* Share button — owners only */}
+            {editingNoteId && isOwner && onShareClick && (
+              <IconButton
+                variant="ghost"
+                color="gray"
+                onClick={onShareClick}
+                style={{ cursor: 'pointer' }}
+                title="Share Note"
+              >
+                <Share2Icon />
+              </IconButton>
+            )}
+            {/* Lock button — owners only */}
+            {editingNoteId && isOwner && (
               <IconButton 
                 variant="ghost" 
                 color={hasPassword ? "cyan" : "gray"}
@@ -58,8 +85,16 @@ export default function NoteEditorDialog({
           </Flex>
         </Flex>
 
+        {/* Read-only callout */}
+        {isReadOnly && (
+          <Callout.Root color="gray" size="1" mb="3">
+            <Callout.Text>You have read-only access to this note.</Callout.Text>
+          </Callout.Root>
+        )}
+
         <Flex direction="column" gap="4" style={{ flexGrow: 1 }}>
-          {labels.length > 0 && (
+          {/* Label toggles — only for owners */}
+          {isOwner && labels.length > 0 && (
             <Flex gap="2" wrap="wrap">
               {labels.map(label => (
                 <Button
@@ -77,10 +112,15 @@ export default function NoteEditorDialog({
           )}
           <input
             value={noteTitle}
-            onChange={handleTitleChange}
+            onChange={canEdit ? handleTitleChange : undefined}
+            readOnly={!canEdit}
             placeholder="Untitled"
             className="notion-title-input"
-            style={{ fontSize: `${titleFontSize}px` }}
+            style={{ 
+              fontSize: `${titleFontSize}px`,
+              cursor: !canEdit ? 'default' : undefined,
+              opacity: !canEdit ? 0.8 : 1
+            }}
           />
           <textarea
             ref={(el) => {
@@ -90,10 +130,15 @@ export default function NoteEditorDialog({
               }
             }}
             value={noteContent}
-            onChange={handleContentChange}
-            placeholder="Start typing..."
+            onChange={canEdit ? handleContentChange : undefined}
+            readOnly={!canEdit}
+            placeholder={canEdit ? "Start typing..." : ""}
             className="notion-content-input"
-            style={{ fontSize: `${fontSize}px` }}
+            style={{ 
+              fontSize: `${fontSize}px`,
+              cursor: !canEdit ? 'default' : undefined,
+              opacity: !canEdit ? 0.8 : 1
+            }}
             rows={1}
           />
           
@@ -102,36 +147,41 @@ export default function NoteEditorDialog({
               {noteImageUrls.map((url, idx) => (
                 <Box key={idx} style={{ position: 'relative', aspectRatio: '1', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--gray-5)' }}>
                   <img src={url} alt={`attachment-${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <IconButton 
-                    size="1" 
-                    color="red" 
-                    variant="solid" 
-                    style={{ position: 'absolute', top: 6, right: 6, cursor: 'pointer', zIndex: 10 }}
-                    onClick={() => handleRemoveImage(url)}
-                  >
-                    <Cross2Icon />
-                  </IconButton>
+                  {canEdit && (
+                    <IconButton 
+                      size="1" 
+                      color="red" 
+                      variant="solid" 
+                      style={{ position: 'absolute', top: 6, right: 6, cursor: 'pointer', zIndex: 10 }}
+                      onClick={() => handleRemoveImage(url)}
+                    >
+                      <Cross2Icon />
+                    </IconButton>
+                  )}
                 </Box>
               ))}
             </Grid>
           )}
         </Flex>
 
-        <Flex justify="start" mt="4">
-          <input 
-            type="file" 
-            id="image-upload" 
-            multiple 
-            accept="image/*" 
-            style={{ display: 'none' }} 
-            onChange={handleImageUpload} 
-          />
-          <label htmlFor="image-upload">
-            <Button asChild variant="soft" color="gray" style={{ cursor: 'pointer' }}>
-              <span><ImageIcon /> Add Image</span>
-            </Button>
-          </label>
-        </Flex>
+        {/* Image upload — only for users who can edit */}
+        {canEdit && (
+          <Flex justify="start" mt="4">
+            <input 
+              type="file" 
+              id="image-upload" 
+              multiple 
+              accept="image/*" 
+              style={{ display: 'none' }} 
+              onChange={handleImageUpload} 
+            />
+            <label htmlFor="image-upload">
+              <Button asChild variant="soft" color="gray" style={{ cursor: 'pointer' }}>
+                <span><ImageIcon /> Add Image</span>
+              </Button>
+            </label>
+          </Flex>
+        )}
       </Dialog.Content>
     </Dialog.Root>
   );
