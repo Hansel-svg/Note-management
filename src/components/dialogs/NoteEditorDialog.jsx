@@ -41,10 +41,10 @@ export default function NoteEditorDialog({
       >
         <Flex justify="between" align="center" mb="5">
           <Flex align="center" gap="3">
-            <Text color="gray" size="2">
+            <Dialog.Title m="0" size="2" weight="bold">
               {editingNoteId ? (isOwner ? 'Editing Note' : 'Shared Note') : 'New Note'}
-              {isSaving && <Text color="cyan" ml="2">Saving...</Text>}
-            </Text>
+            </Dialog.Title>
+            {isSaving && <Text color="cyan" size="2">Saving...</Text>}
             {isReadOnly && (
               <Flex align="center" gap="1" style={{ color: 'var(--gray-10)' }}>
                 <EyeOpenIcon />
