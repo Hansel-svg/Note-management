@@ -1,4 +1,4 @@
-import { Dialog, Flex, Text, IconButton, Button, Box, Grid, Callout } from "@radix-ui/themes";
+import { Dialog, Flex, Text, IconButton, Button, Box, Grid, Callout, Badge } from "@radix-ui/themes";
 import { Cross2Icon, LockClosedIcon, LockOpen2Icon, ImageIcon, Share2Icon, EyeOpenIcon } from "@radix-ui/react-icons";
 
 export default function NoteEditorDialog({
@@ -23,7 +23,10 @@ export default function NoteEditorDialog({
   onManageLockClick,
   isOwner = true,
   sharePermission = null,
-  onShareClick
+  onShareClick,
+  activeEditors = [],
+  ownerEmail = null,
+  sharedAt = null
 }) {
   const isReadOnly = !isOwner && sharePermission === 'read';
   const canEdit = isOwner || sharePermission === 'edit';
@@ -44,6 +47,16 @@ export default function NoteEditorDialog({
             <Dialog.Title m="0" size="2" weight="bold">
               {editingNoteId ? (isOwner ? 'Editing Note' : 'Shared Note') : 'New Note'}
             </Dialog.Title>
+            
+            {activeEditors.length > 0 && (
+              <Badge color="green" variant="soft" radius="full">
+                <Flex align="center" gap="1">
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'var(--green-9)' }} />
+                  {activeEditors.length} other{activeEditors.length > 1 ? 's' : ''} editing
+                </Flex>
+              </Badge>
+            )}
+
             {isSaving && <Text color="cyan" size="2">Saving...</Text>}
             {isReadOnly && (
               <Flex align="center" gap="1" style={{ color: 'var(--gray-10)' }}>
@@ -84,6 +97,20 @@ export default function NoteEditorDialog({
             </Dialog.Close>
           </Flex>
         </Flex>
+
+        {/* Shared Info */}
+        {!isOwner && (
+          <Box mb="4" p="2" style={{ backgroundColor: 'var(--gray-a2)', borderRadius: '8px' }}>
+            <Text size="1" color="gray" style={{ display: 'block' }}>
+              <strong>Shared by:</strong> {ownerEmail || 'Owner'}
+            </Text>
+            {sharedAt && (
+              <Text size="1" color="gray">
+                <strong>Shared on:</strong> {new Date(sharedAt).toLocaleString()}
+              </Text>
+            )}
+          </Box>
+        )}
 
         {/* Read-only callout */}
         {isReadOnly && (

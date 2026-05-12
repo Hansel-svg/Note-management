@@ -1,5 +1,5 @@
 import { supabase } from "../lib/SupaBaseClient";
-import { Container, Flex, Grid, Text, Box, Callout } from "@radix-ui/themes";
+import { Container, Flex, Grid, Text, Box, Callout, Heading, Badge } from "@radix-ui/themes";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { useState, useEffect, useCallback, useRef, useContext } from "react";
 import { useLocation } from "wouter";
@@ -57,9 +57,11 @@ export default function Home({ session }) {
   const [manageLockConfirmPassword, setManageLockConfirmPassword] = useState('');
   const [manageLockError, setManageLockError] = useState('');
 
-  // Share dialog
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [shareTargetNoteId, setShareTargetNoteId] = useState(null);
+
+  // Real-time collaboration
+  const [activeEditors, setActiveEditors] = useState([]);
 
 
   useEffect(() => {
@@ -97,6 +99,51 @@ export default function Home({ session }) {
       console.error("Error fetching notes:", error);
     }
   }, [session, debouncedSearchTerm, unlockedNotesContent]);
+
+  // Real-time sync and presence
+  useEffect(() => {
+    if (!editingNoteId || !isDialogOpen || !session?.user?.email) return;
+
+    const channel = supabase.channel(`note-sync-${editingNoteId}`)
+      .on('postgres_changes', { 
+        event: 'UPDATE', 
+        schema: 'public', 
+        table: 'notes', 
+        filter: `id=eq.${editingNoteId}` 
+      }, (payload) => {
+        // Only update if it's a remote change and we aren't currently mid-save
+        const isRemoteChange = payload.new.title !== titleRef.current || 
+                               payload.new.content !== contentRef.current;
+        
+        if (isRemoteChange && !isSavingRef.current) {
+          setNoteTitle(payload.new.title);
+          setNoteContent(payload.new.content);
+          setNoteImageUrls(payload.new.image_urls || []);
+          
+          titleRef.current = payload.new.title;
+          contentRef.current = payload.new.content;
+          imageUrlsRef.current = payload.new.image_urls || [];
+        }
+      })
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const users = Object.values(state).flat().map(p => p.user);
+        setActiveEditors(users.filter(u => u !== session.user.email));
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({ 
+            user: session.user.email, 
+            online_at: new Date().toISOString() 
+          });
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+      setActiveEditors([]);
+    };
+  }, [editingNoteId, isDialogOpen, session]);
 
   const handleTogglePin = async (e, note) => {
     e.stopPropagation();
@@ -356,10 +403,12 @@ export default function Home({ session }) {
       return false;
     }
 
-    if (!note.note_labels) return false;
-    const noteLabelIds = note.note_labels.map(nl => nl.labels?.id);
+    const noteLabelIds = note.note_labels?.map(nl => nl.labels?.id) || [];
     return activeFilterLabels.every(id => noteLabelIds.includes(id));
   });
+
+  const myNotes = filteredNotes.filter(n => n.is_owner !== false);
+  const sharedWithMe = filteredNotes.filter(n => n.is_owner === false);
 
   const autosaveNote = async (title, content, id, imageUrls) => {
     if (!title.trim() && !content.trim() && imageUrls.length === 0) return id;
@@ -545,40 +594,94 @@ export default function Home({ session }) {
         <Text color="gray" size="3">
           {debouncedSearchTerm ? `No notes found matching "${debouncedSearchTerm}".` : 'No notes match your selected labels.'}
         </Text>
-      ) : viewMode === 'grid' ? (
-        <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="4">
-          {filteredNotes.map(note => (
-            <NoteCard 
-              key={note.id} 
-              note={note} 
-              viewMode="grid"
-              noteColor={noteColor}
-              titleFontSize={titleFontSize}
-              fontSize={fontSize}
-              unlockedNotes={unlockedNotes}
-              handleEditClick={handleEditClick}
-              handleTogglePin={handleTogglePin}
-              handleDeleteClick={handleDeleteClick}
-            />
-          ))}
-        </Grid>
       ) : (
-        <Flex direction="column" gap="4">
-          {filteredNotes.map(note => (
-            <NoteCard 
-              key={note.id} 
-              note={note} 
-              viewMode="list"
-              noteColor={noteColor}
-              titleFontSize={titleFontSize}
-              fontSize={fontSize}
-              unlockedNotes={unlockedNotes}
-              handleEditClick={handleEditClick}
-              handleTogglePin={handleTogglePin}
-              handleDeleteClick={handleDeleteClick}
-            />
-          ))}
-        </Flex>
+        <>
+          {myNotes.length > 0 && (
+            <Box mb="8">
+              <Heading size="4" mb="4" color="gray" style={{ borderBottom: '1px solid var(--gray-5)', paddingBottom: '8px' }}>
+                My Notes
+              </Heading>
+              {viewMode === 'grid' ? (
+                <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="4">
+                  {myNotes.map(note => (
+                    <NoteCard 
+                      key={note.id} 
+                      note={note} 
+                      viewMode="grid"
+                      noteColor={noteColor}
+                      titleFontSize={titleFontSize}
+                      fontSize={fontSize}
+                      unlockedNotes={unlockedNotes}
+                      handleEditClick={handleEditClick}
+                      handleTogglePin={handleTogglePin}
+                      handleDeleteClick={handleDeleteClick}
+                    />
+                  ))}
+                </Grid>
+              ) : (
+                <Flex direction="column" gap="4">
+                  {myNotes.map(note => (
+                    <NoteCard 
+                      key={note.id} 
+                      note={note} 
+                      viewMode="list"
+                      noteColor={noteColor}
+                      titleFontSize={titleFontSize}
+                      fontSize={fontSize}
+                      unlockedNotes={unlockedNotes}
+                      handleEditClick={handleEditClick}
+                      handleTogglePin={handleTogglePin}
+                      handleDeleteClick={handleDeleteClick}
+                    />
+                  ))}
+                </Flex>
+              )}
+            </Box>
+          )}
+
+          {sharedWithMe.length > 0 && (
+            <Box mb="6">
+              <Heading size="4" mb="4" color="gray" style={{ borderBottom: '1px solid var(--gray-5)', paddingBottom: '8px' }}>
+                Shared with Me
+              </Heading>
+              {viewMode === 'grid' ? (
+                <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="4">
+                  {sharedWithMe.map(note => (
+                    <NoteCard 
+                      key={note.id} 
+                      note={note} 
+                      viewMode="grid"
+                      noteColor={noteColor}
+                      titleFontSize={titleFontSize}
+                      fontSize={fontSize}
+                      unlockedNotes={unlockedNotes}
+                      handleEditClick={handleEditClick}
+                      handleTogglePin={handleTogglePin}
+                      handleDeleteClick={handleDeleteClick}
+                    />
+                  ))}
+                </Grid>
+              ) : (
+                <Flex direction="column" gap="4">
+                  {sharedWithMe.map(note => (
+                    <NoteCard 
+                      key={note.id} 
+                      note={note} 
+                      viewMode="list"
+                      noteColor={noteColor}
+                      titleFontSize={titleFontSize}
+                      fontSize={fontSize}
+                      unlockedNotes={unlockedNotes}
+                      handleEditClick={handleEditClick}
+                      handleTogglePin={handleTogglePin}
+                      handleDeleteClick={handleDeleteClick}
+                    />
+                  ))}
+                </Flex>
+              )}
+            </Box>
+          )}
+        </>
       )}
 
       <NoteEditorDialog 
@@ -613,6 +716,10 @@ export default function Home({ session }) {
           setShareTargetNoteId(currentNoteIdRef.current);
           setIsShareDialogOpen(true);
         }}
+        session={session}
+        activeEditors={activeEditors}
+        ownerEmail={notes.find(n => n.id === currentNoteIdRef.current)?.owner_email}
+        sharedAt={notes.find(n => n.id === currentNoteIdRef.current)?.shared_at}
       />
 
       <LabelManagerDialog 

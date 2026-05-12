@@ -31,7 +31,15 @@ export default function NoteCard({
             <Flex justify="between" align="start" mb="2" style={{ flexShrink: 0 }}>
               <Heading size="6" truncate style={{ fontSize: `${titleFontSize}px`, lineHeight: 1.2, flexGrow: 1, minWidth: 0 }}>{note.title}</Heading>
             </Flex>
-            {!isOwner && <Box mb="2" style={{ flexShrink: 0 }}><ShareBadge permission={sharePermission} /></Box>}
+            {!isOwner && (
+              <Flex direction="column" gap="1" mb="2" style={{ flexShrink: 0 }}>
+                <ShareBadge permission={sharePermission} />
+                <Text size="1" color="gray" truncate>
+                  Shared by {note.owner_email || 'Owner'}
+                  {note.shared_at && ` • ${new Date(note.shared_at).toLocaleDateString()}`}
+                </Text>
+              </Flex>
+            )}
             {note.note_labels && note.note_labels.length > 0 && (
               <Flex gap="1" mb="2" wrap="wrap" style={{ flexShrink: 0 }}>
                 {note.note_labels.map(nl => (
@@ -97,7 +105,15 @@ export default function NoteCard({
         <Flex justify="between" align="start">
           <Box style={{ flexGrow: 1, minWidth: 0 }}>
             <Heading size="6" mb="1" truncate style={{ fontSize: `${titleFontSize}px`, lineHeight: 1.2 }}>{note.title}</Heading>
-            {!isOwner && <Box mb="2"><ShareBadge permission={sharePermission} /></Box>}
+            {!isOwner && (
+              <Flex align="center" gap="3" mb="2">
+                <ShareBadge permission={sharePermission} />
+                <Text size="1" color="gray">
+                  Shared by {note.owner_email || 'Owner'}
+                  {note.shared_at && ` • ${new Date(note.shared_at).toLocaleDateString()}`}
+                </Text>
+              </Flex>
+            )}
             {note.note_labels && note.note_labels.length > 0 && (
               <Flex gap="1" mb="2" wrap="wrap" style={{ flexShrink: 0 }}>
                 {note.note_labels.map(nl => (
