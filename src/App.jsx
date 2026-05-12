@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import { Route, Redirect } from "wouter";
-import SignUp from "./SignUp";
-import SignIn from "./SignIn";
-import { supabase } from "./SupaBaseClient";
-import Home from "./Home";
-import { ThemeToggle } from "./ThemeToggle";
+import SignUp from "./pages/SignUp";
+import SignIn from "./pages/SignIn";
+import { supabase } from "./lib/SupaBaseClient";
+import Home from "./pages/Home";
+import { ThemeToggle } from "./components/ThemeToggle";
 import { Box } from "@radix-ui/themes";
-import ForgotPassword from "./ForgotPassword";
-import UpdatePassword from "./UpdatePassword";
-import Preferences from "./Preferences";
+import ForgotPassword from "./pages/ForgotPassword";
+import UpdatePassword from "./pages/UpdatePassword";
+import Preferences from "./pages/Preferences";
 
 const ProtectedRoute = ({ session, path, children }) => {
   return (

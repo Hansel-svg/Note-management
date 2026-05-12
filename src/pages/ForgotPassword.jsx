@@ -1,4 +1,4 @@
-import { supabase } from "./SupaBaseClient";
+import { supabase } from "../lib/SupaBaseClient";
 import { useState } from "react";
 import { Container, Card, Flex, Heading, Text, TextField, Button, Box, Callout } from "@radix-ui/themes";
 import { InfoCircledIcon, CheckCircledIcon } from "@radix-ui/react-icons";

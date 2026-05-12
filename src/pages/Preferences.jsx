@@ -2,8 +2,8 @@ import { Container, Card, Flex, Heading, Text, Box, Switch, Slider, Select, Butt
 import { ArrowLeftIcon, UploadIcon } from "@radix-ui/react-icons";
 import { useLocation } from "wouter";
 import { useContext, useState, useEffect, useRef } from "react";
-import { ThemeContext } from "./ThemeProvider";
-import { supabase } from "./SupaBaseClient";
+import { ThemeContext } from "../providers/ThemeProvider";
+import { supabase } from "../lib/SupaBaseClient";
 
 export default function Preferences({ session }) {
   const [, setLocation] = useLocation();

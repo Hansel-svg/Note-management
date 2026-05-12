@@ -1,19 +1,19 @@
-import { supabase } from "./SupaBaseClient";
+import { supabase } from "../lib/SupaBaseClient";
 import { Container, Flex, Grid, Text, Box, Callout } from "@radix-ui/themes";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { useState, useEffect, useCallback, useRef, useContext } from "react";
 import { useLocation } from "wouter";
-import { ThemeContext } from "./ThemeProvider";
+import { ThemeContext } from "../providers/ThemeProvider";
 import "./Home.css";
 
-import DashboardHeader from "./components/DashboardHeader";
-import LabelFilterBar from "./components/LabelFilterBar";
-import NoteCard from "./components/NoteCard";
-import DeleteConfirmDialog from "./components/dialogs/DeleteConfirmDialog";
-import UnlockDialog from "./components/dialogs/UnlockDialog";
-import ManageLockDialog from "./components/dialogs/ManageLockDialog";
-import LabelManagerDialog from "./components/dialogs/LabelManagerDialog";
-import NoteEditorDialog from "./components/dialogs/NoteEditorDialog";
+import DashboardHeader from "../components/DashboardHeader";
+import LabelFilterBar from "../components/LabelFilterBar";
+import NoteCard from "../components/NoteCard";
+import DeleteConfirmDialog from "../components/dialogs/DeleteConfirmDialog";
+import UnlockDialog from "../components/dialogs/UnlockDialog";
+import ManageLockDialog from "../components/dialogs/ManageLockDialog";
+import LabelManagerDialog from "../components/dialogs/LabelManagerDialog";
+import NoteEditorDialog from "../components/dialogs/NoteEditorDialog";
 async function hashPassword(password) {
   const msgUint8 = new TextEncoder().encode(password);
   const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);

@@ -1,7 +1,7 @@
 import { IconButton } from "@radix-ui/themes";
 import { SunIcon, MoonIcon } from "@radix-ui/react-icons";
 import { useContext } from "react";
-import { ThemeContext } from "./ThemeProvider";
+import { ThemeContext } from "../providers/ThemeProvider";
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useContext(ThemeContext);
