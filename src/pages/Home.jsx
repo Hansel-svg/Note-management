@@ -60,7 +60,6 @@ export default function Home({ session }) {
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [shareTargetNoteId, setShareTargetNoteId] = useState(null);
 
-  // Real-time collaboration
   const [activeEditors, setActiveEditors] = useState([]);
 
 
@@ -100,7 +99,6 @@ export default function Home({ session }) {
     }
   }, [session, debouncedSearchTerm, unlockedNotesContent]);
 
-  // Real-time sync and presence
   useEffect(() => {
     if (!editingNoteId || !isDialogOpen || !session?.user?.email) return;
 
@@ -111,7 +109,6 @@ export default function Home({ session }) {
         table: 'notes', 
         filter: `id=eq.${editingNoteId}` 
       }, (payload) => {
-        // Only update if it's a remote change and we aren't currently mid-save
         const isRemoteChange = payload.new.title !== titleRef.current || 
                                payload.new.content !== contentRef.current;
         
@@ -144,6 +141,24 @@ export default function Home({ session }) {
       setActiveEditors([]);
     };
   }, [editingNoteId, isDialogOpen, session]);
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    const channel = supabase.channel('dashboard-changes')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'notes' 
+      }, () => {
+        fetchNotes();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session, fetchNotes]);
 
   const handleTogglePin = async (e, note) => {
     e.stopPropagation();
@@ -414,7 +429,6 @@ export default function Home({ session }) {
     if (!title.trim() && !content.trim() && imageUrls.length === 0) return id;
     if (!session?.user?.id) return id;
     
-    // Permission check for existing notes
     if (id) {
       const note = notes.find(n => n.id === id);
       const isOwner = note?.is_owner !== false;

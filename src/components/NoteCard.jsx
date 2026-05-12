@@ -85,7 +85,6 @@ export default function NoteCard({
     );
   }
 
-  // List View
   return (
     <Card size="2" variant="surface" className="note-card-hover" onClick={() => handleEditClick(note)} style={{ backgroundColor: noteColor === 'surface' ? undefined : `var(--${noteColor}-3)` }}>
       {isLocked ? (

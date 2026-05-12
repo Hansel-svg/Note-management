@@ -53,7 +53,6 @@ export default function ShareNoteDialog({ open, onOpenChange, noteId, noteColor 
   };
 
   const handleChangePermission = async (shareId, newPermission, recipientEmail) => {
-    // Re-use share_note which does an upsert
     const { data, error } = await supabase.rpc('share_note', {
       p_note_id: noteId,
       p_recipient_email: recipientEmail,
