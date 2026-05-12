@@ -1,5 +1,5 @@
 import { supabase } from "./SupaBaseClient";
-import { Container, Flex, Heading, Button, Box, TextField, TextArea, Card, Grid, Text, IconButton, Callout, Avatar, Dialog, AlertDialog } from "@radix-ui/themes";
+import { Container, Flex, Heading, Button, Box, TextField, TextArea, Card, Grid, Text, IconButton, Callout, Avatar, Dialog, AlertDialog, Tabs } from "@radix-ui/themes";
 import { PlusIcon, TrashIcon, ExitIcon, InfoCircledIcon, LockClosedIcon, GearIcon, GridIcon, ListBulletIcon, Pencil1Icon, Cross2Icon, ImageIcon, DrawingPinIcon, DrawingPinFilledIcon, MagnifyingGlassIcon, LockOpen2Icon } from "@radix-ui/react-icons";
 import { useState, useEffect, useCallback, useRef, useContext } from "react";
 import { useLocation } from "wouter";
@@ -34,6 +34,7 @@ export default function Home({ session }) {
   const [selectedNoteLabels, setSelectedNoteLabels] = useState([]);
 
   const [unlockedNotes, setUnlockedNotes] = useState([]);
+  const [unlockedNotesContent, setUnlockedNotesContent] = useState({});
   const [unlockDialogOpen, setUnlockDialogOpen] = useState(false);
   const [unlockTargetNote, setUnlockTargetNote] = useState(null);
   const [unlockAction, setUnlockAction] = useState(null);
@@ -72,22 +73,15 @@ export default function Home({ session }) {
 
   const fetchNotes = useCallback(async () => {
     if (!session?.user?.id) return;
-    let query = supabase.from('notes').select('*, note_labels(labels(*))');
-
-    if (debouncedSearchTerm) {
-      query = query.or(`title.ilike.%${debouncedSearchTerm}%,content.ilike.%${debouncedSearchTerm}%`);
-    }
-
-    const { data, error } = await query
-      .order('pinned_at', { ascending: false, nullsFirst: false })
-      .order('updated_at', { ascending: false });
+    
+    const { data, error } = await supabase.rpc('get_dashboard_notes', { search_query: debouncedSearchTerm || '' });
 
     if (!error && data) {
-      setNotes(data);
+      setNotes(data.map(n => unlockedNotesContent[n.id] ? { ...n, ...unlockedNotesContent[n.id] } : n));
     } else {
       console.error("Error fetching notes:", error);
     }
-  }, [session, debouncedSearchTerm]);
+  }, [session, debouncedSearchTerm, unlockedNotesContent]);
 
   const handleTogglePin = async (e, note) => {
     e.stopPropagation();
@@ -204,16 +198,30 @@ export default function Home({ session }) {
 
   const submitUnlock = async () => {
     const hash = await hashPassword(unlockPassword);
-    if (hash === unlockTargetNote.password_hash) {
-      setUnlockedNotes([...unlockedNotes, unlockTargetNote.id]);
-      setUnlockDialogOpen(false);
-      if (unlockAction === 'edit') {
-        openEditorForNote(unlockTargetNote);
-      } else if (unlockAction === 'delete') {
-        handleDeleteNote(unlockTargetNote.id);
-      }
-    } else {
+    const { data, error } = await supabase.rpc('unlock_note', { p_note_id: unlockTargetNote.id, p_hash: hash });
+    
+    if (error || !data || data.length === 0) {
       setUnlockError('Incorrect password.');
+      return;
+    }
+
+    const realContent = data[0];
+    const updatedNote = { 
+      ...unlockTargetNote, 
+      title: realContent.title, 
+      content: realContent.content, 
+      image_urls: realContent.image_urls 
+    };
+
+    setUnlockedNotesContent(prev => ({ ...prev, [unlockTargetNote.id]: realContent }));
+    setNotes(notes.map(n => n.id === unlockTargetNote.id ? updatedNote : n));
+    setUnlockedNotes([...unlockedNotes, unlockTargetNote.id]);
+    setUnlockDialogOpen(false);
+
+    if (unlockAction === 'edit') {
+      openEditorForNote(updatedNote);
+    } else if (unlockAction === 'delete') {
+      setDeleteConfirmNoteId(unlockTargetNote.id);
     }
   };
 
@@ -911,58 +919,58 @@ export default function Home({ session }) {
       <Dialog.Root open={isManageLockOpen} onOpenChange={setIsManageLockOpen}>
         <Dialog.Content maxWidth="400px" style={{ backgroundColor: noteColor === 'surface' ? undefined : `var(--${noteColor}-2)` }}>
           <Dialog.Title>{notes.find(n => n.id === currentNoteIdRef.current)?.password_hash ? 'Manage Lock' : 'Set Password'}</Dialog.Title>
-          <Dialog.Description size="2" color="gray" mb="4">
-            {notes.find(n => n.id === currentNoteIdRef.current)?.password_hash 
-              ? 'Enter your current password to change it or remove the lock.' 
-              : 'Set a password to lock this note.'}
-          </Dialog.Description>
           {manageLockError && (
             <Callout.Root color="red" size="1" mb="3">
               <Callout.Text>{manageLockError}</Callout.Text>
             </Callout.Root>
           )}
-          
-          <Flex direction="column" gap="3">
-            {notes.find(n => n.id === currentNoteIdRef.current)?.password_hash && (
-              <TextField.Root
-                type="password"
-                placeholder="Current Password"
-                value={manageLockCurrentPassword}
-                onChange={(e) => setManageLockCurrentPassword(e.target.value)}
-                autoComplete="new-password"
-              />
-            )}
-            <TextField.Root
-              type="password"
-              placeholder="New Password"
-              value={manageLockNewPassword}
-              onChange={(e) => setManageLockNewPassword(e.target.value)}
-              autoComplete="new-password"
-            />
-            <TextField.Root
-              type="password"
-              placeholder="Confirm New Password"
-              value={manageLockConfirmPassword}
-              onChange={(e) => setManageLockConfirmPassword(e.target.value)}
-              autoComplete="new-password"
-            />
-          </Flex>
 
-          <Flex justify="between" mt="5" align="center">
-            {notes.find(n => n.id === currentNoteIdRef.current)?.password_hash ? (
-              <Button color="red" variant="soft" style={{ cursor: 'pointer' }} onClick={() => submitManageLock('remove')}>
-                Remove Lock
-              </Button>
-            ) : <Box />}
-            <Flex gap="3">
-              <Dialog.Close>
-                <Button variant="soft" color="gray" style={{ cursor: 'pointer' }}>Cancel</Button>
-              </Dialog.Close>
-              <Button color="cyan" style={{ cursor: 'pointer' }} onClick={() => submitManageLock(notes.find(n => n.id === currentNoteIdRef.current)?.password_hash ? 'change' : 'set')}>
-                {notes.find(n => n.id === currentNoteIdRef.current)?.password_hash ? 'Update' : 'Set Password'}
-              </Button>
-            </Flex>
-          </Flex>
+          {notes.find(n => n.id === currentNoteIdRef.current)?.password_hash ? (
+            <Tabs.Root defaultValue="change" onValueChange={() => { setManageLockError(''); setManageLockCurrentPassword(''); setManageLockNewPassword(''); setManageLockConfirmPassword(''); }}>
+              <Tabs.List size="1">
+                <Tabs.Trigger value="change" style={{ cursor: 'pointer' }}>Change Password</Tabs.Trigger>
+                <Tabs.Trigger value="remove" style={{ cursor: 'pointer' }}>Remove Lock</Tabs.Trigger>
+              </Tabs.List>
+              
+              <Box pt="4">
+                <Tabs.Content value="change">
+                  <Flex direction="column" gap="3">
+                    <TextField.Root type="password" placeholder="Current Password" value={manageLockCurrentPassword} onChange={(e) => setManageLockCurrentPassword(e.target.value)} autoComplete="new-password" />
+                    <TextField.Root type="password" placeholder="New Password" value={manageLockNewPassword} onChange={(e) => setManageLockNewPassword(e.target.value)} autoComplete="new-password" />
+                    <TextField.Root type="password" placeholder="Confirm New Password" value={manageLockConfirmPassword} onChange={(e) => setManageLockConfirmPassword(e.target.value)} autoComplete="new-password" />
+                    <Flex justify="between" mt="3" align="center">
+                      <Dialog.Close><Button variant="soft" color="gray" style={{ cursor: 'pointer' }}>Cancel</Button></Dialog.Close>
+                      <Button color="cyan" style={{ cursor: 'pointer' }} onClick={() => submitManageLock('change')}>Update Password</Button>
+                    </Flex>
+                  </Flex>
+                </Tabs.Content>
+                <Tabs.Content value="remove">
+                  <Flex direction="column" gap="3">
+                    <Text size="2" color="gray">Enter your current password to remove the lock.</Text>
+                    <TextField.Root type="password" placeholder="Current Password" value={manageLockCurrentPassword} onChange={(e) => setManageLockCurrentPassword(e.target.value)} autoComplete="new-password" />
+                    <Flex justify="between" mt="3" align="center">
+                      <Dialog.Close><Button variant="soft" color="gray" style={{ cursor: 'pointer' }}>Cancel</Button></Dialog.Close>
+                      <Button color="red" variant="soft" style={{ cursor: 'pointer' }} onClick={() => submitManageLock('remove')}>Remove Lock</Button>
+                    </Flex>
+                  </Flex>
+                </Tabs.Content>
+              </Box>
+            </Tabs.Root>
+          ) : (
+            <>
+              <Dialog.Description size="2" color="gray" mb="4">
+                Set a password to lock this note.
+              </Dialog.Description>
+              <Flex direction="column" gap="3">
+                <TextField.Root type="password" placeholder="New Password" value={manageLockNewPassword} onChange={(e) => setManageLockNewPassword(e.target.value)} autoComplete="new-password" />
+                <TextField.Root type="password" placeholder="Confirm New Password" value={manageLockConfirmPassword} onChange={(e) => setManageLockConfirmPassword(e.target.value)} autoComplete="new-password" />
+              </Flex>
+              <Flex justify="end" gap="3" mt="5">
+                <Dialog.Close><Button variant="soft" color="gray" style={{ cursor: 'pointer' }}>Cancel</Button></Dialog.Close>
+                <Button color="cyan" style={{ cursor: 'pointer' }} onClick={() => submitManageLock('set')}>Set Password</Button>
+              </Flex>
+            </>
+          )}
         </Dialog.Content>
       </Dialog.Root>
 
