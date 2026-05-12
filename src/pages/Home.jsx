@@ -153,6 +153,13 @@ export default function Home({ session }) {
       }, () => {
         fetchNotes();
       })
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'note_shares' 
+      }, () => {
+        fetchNotes();
+      })
       .subscribe();
 
     return () => {

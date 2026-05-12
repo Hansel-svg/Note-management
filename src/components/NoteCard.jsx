@@ -14,7 +14,7 @@ export default function NoteCard({
   handleDeleteClick
 }) {
   const isLocked = note.password_hash && !unlockedNotes.includes(note.id);
-  const isOwner = note.is_owner !== false; // default true for backward compat
+  const isOwner = note.is_owner !== false;
   const sharePermission = note.share_permission || null;
 
   if (viewMode === 'grid') {

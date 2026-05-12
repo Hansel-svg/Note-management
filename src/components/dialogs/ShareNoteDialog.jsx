@@ -12,7 +12,7 @@ export default function ShareNoteDialog({ open, onOpenChange, noteId, noteColor 
   const [shares, setShares] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetchingShares, setFetchingShares] = useState(false);
-  const [message, setMessage] = useState(null); // { type: 'success'|'error', text: string }
+  const [message, setMessage] = useState(null);
 
   const fetchShares = async () => {
     if (!noteId) return;
