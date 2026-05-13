@@ -35,7 +35,7 @@ export default function ForgotPassword() {
           <form onSubmit={handleReset}>
             <Flex direction="column" gap="5">
               <Box style={{ textAlign: "center" }} mb="4">
-                <Heading size="8" mb="2" style={{ color: 'var(--text-h)', fontWeight: 800, letterSpacing: '-0.04em', textTransform: 'uppercase' }}>
+                <Heading size={{ initial: '7', sm: '8' }} mb="2" style={{ color: 'var(--text-h)', fontWeight: 800, letterSpacing: '-0.04em', textTransform: 'uppercase' }}>
                   RESET PASSWORD
                 </Heading>
                 <Text size="2" style={{ color: 'var(--text)', fontWeight: 600, textTransform: 'uppercase', opacity: 0.6 }}>
@@ -92,9 +92,14 @@ export default function ForgotPassword() {
                 </Button>
               </Flex>
               
-              <Text size="2" align="center" mt="4" style={{ fontWeight: 700, textTransform: 'uppercase', color: 'var(--text)' }}>
-                Remember your password? <Link href="/signin" style={{ color: 'var(--text-h)', textDecoration: 'underline', fontWeight: 800 }}>Sign in</Link>
-              </Text>
+              <Flex direction="column" gap="2" mt="4">
+                <Text size="2" align="center" style={{ fontWeight: 700, textTransform: 'uppercase', color: 'var(--text)' }}>
+                  Remembered your password? <Link href="/signin" style={{ color: 'var(--text-h)', textDecoration: 'underline', fontWeight: 800 }}>Sign in</Link>
+                </Text>
+                <Text size="2" align="center" style={{ fontWeight: 700, textTransform: 'uppercase', color: 'var(--text)' }}>
+                  Or <Link href="/" style={{ color: 'var(--text-h)', textDecoration: 'underline', fontWeight: 800 }}>Back to dashboard</Link>
+                </Text>
+              </Flex>
             </Flex>
           </form>
         </Card>

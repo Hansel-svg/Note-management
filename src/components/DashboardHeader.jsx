@@ -46,11 +46,16 @@ export default function DashboardHeader({
         </Box>
       )}
 
-      <Flex justify="between" align="center" mb="6">
-        <Heading size="8" as="h1" style={{ color: 'var(--text-h)', fontWeight: 800, letterSpacing: '-0.04em', textTransform: 'uppercase' }}>
+      <Flex direction={{ initial: 'column', sm: 'row' }} justify="between" align={{ initial: 'stretch', sm: 'center' }} mb="6" gap="4">
+        <Heading 
+          size={{ initial: '7', sm: '8' }} 
+          as="h1" 
+          display={{ initial: 'block', md: 'none' }}
+          style={{ color: 'var(--text-h)', fontWeight: 800, letterSpacing: '-0.04em', textTransform: 'uppercase', margin: 0 }}
+        >
           MY NOTES
         </Heading>
-        <Flex gap="3" align="center">
+        <Flex gap="2" align="center" wrap="wrap" justify={{ initial: 'center', sm: 'end' }} display={{ initial: 'flex', md: 'none' }}>
           <NotificationBell session={session} onSelectNote={onSelectNote} />
           <Avatar
             size="3"
@@ -59,36 +64,41 @@ export default function DashboardHeader({
             radius="none"
             style={{ border: '1.5px solid var(--border)' }}
           />
-          <Button variant="outline" color="gray" onClick={() => setLocation('/preferences')} style={{ cursor: "pointer", borderRadius: 0, fontWeight: 800, borderColor: 'var(--border)', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-h)' }}>
+          <Button variant="outline" color="gray" onClick={() => setLocation('/preferences')} style={{ cursor: "pointer", borderRadius: 0, fontWeight: 800, borderColor: 'var(--border)', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-h)', flexGrow: { initial: 1, sm: 0 } }}>
             <GearIcon />
-            PREFERENCES
+            <Box display={{ initial: 'none', xs: 'inline', sm: 'inline' }}>PREFERENCES</Box>
           </Button>
-          <Button variant="outline" color="gray" onClick={() => setLocation('/forgot-password')} style={{ cursor: "pointer", borderRadius: 0, fontWeight: 800, borderColor: 'var(--border)', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-h)' }}>
+          <Button variant="outline" color="gray" onClick={() => setLocation('/forgot-password')} style={{ cursor: "pointer", borderRadius: 0, fontWeight: 800, borderColor: 'var(--border)', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-h)', flexGrow: { initial: 1, sm: 0 } }}>
             <LockClosedIcon />
-            RESET PASSWORD
+            <Box display={{ initial: 'none', xs: 'inline', sm: 'inline' }}>RESET PASSWORD</Box>
           </Button>
-          <Button variant="solid" color="gray" onClick={handleSignOut} style={{ cursor: "pointer", borderRadius: 0, fontWeight: 900, backgroundColor: 'var(--text-h)', color: 'var(--bg)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+          <Button variant="solid" color="gray" onClick={handleSignOut} style={{ cursor: "pointer", borderRadius: 0, fontWeight: 900, backgroundColor: 'var(--text-h)', color: 'var(--bg)', textTransform: 'uppercase', letterSpacing: '0.1em', flexGrow: { initial: 1, sm: 0 } }}>
             <ExitIcon />
-            SIGN OUT
+            <Box display={{ initial: 'none', xs: 'inline', sm: 'inline' }}>SIGN OUT</Box>
           </Button>
         </Flex>
       </Flex>
 
-      <Flex justify="between" align="center" mb="4" wrap="wrap" gap="4">
-        <Flex gap="3" align="center">
-          <Heading size="6" style={{ fontWeight: 800, letterSpacing: '-0.02em', textTransform: 'uppercase', color: 'var(--text-h)' }}>RECENT NOTES</Heading>
-          <Button onClick={openCreateDialog} color="gray" variant="solid" style={{ cursor: 'pointer', borderRadius: 0, fontWeight: 900, backgroundColor: 'var(--text-h)', color: 'var(--bg)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-            <PlusIcon /> ADD NOTE
-          </Button>
+      <Flex justify="between" align={{ initial: 'start', sm: 'center' }} mb="4" wrap="wrap" gap="4" direction={{ initial: 'column', sm: 'row' }}>
+        <Flex gap="3" align="center" style={{ width: { initial: '100%', sm: 'auto' }, justifyContent: 'space-between' }}>
+          <Heading size="6" style={{ fontWeight: 800, letterSpacing: '-0.02em', textTransform: 'uppercase', color: 'var(--text-h)' }}>
+            {searchTerm ? 'SEARCH RESULTS' : 'RECENT NOTES'}
+          </Heading>
+          <Box display={{ initial: 'block', md: 'none' }}>
+            <Button onClick={openCreateDialog} color="gray" variant="solid" style={{ cursor: 'pointer', borderRadius: 0, fontWeight: 900, backgroundColor: 'var(--text-h)', color: 'var(--bg)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              <PlusIcon /> ADD NOTE
+            </Button>
+          </Box>
         </Flex>
-        <Flex gap="3" align="center" style={{ flexGrow: 1, justifyContent: 'flex-end' }}>
+        <Flex gap="3" align="center" style={{ width: '100%', maxWidth: { initial: '100%', sm: '600px' }, flexGrow: 1, justifyContent: 'flex-end' }}>
           <TextField.Root 
             id="search-input"
             placeholder="SEARCH NOTES OR LABELS... (/)" 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: '100%', maxWidth: '300px', borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent' }}
+            style={{ flexGrow: 1, borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent' }}
             autoComplete="off"
+            size="3"
           >
             <TextField.Slot>
               <MagnifyingGlassIcon height="16" width="16" color="var(--text-h)" />
@@ -113,6 +123,7 @@ export default function DashboardHeader({
               color="gray" 
               onClick={() => setViewMode('grid')}
               style={{ cursor: 'pointer', borderRadius: 0, borderColor: 'var(--border)' }}
+              size="3"
             >
               <GridIcon />
             </IconButton>
@@ -121,6 +132,7 @@ export default function DashboardHeader({
               color="gray" 
               onClick={() => setViewMode('list')}
               style={{ cursor: 'pointer', borderRadius: 0, borderColor: 'var(--border)' }}
+              size="3"
             >
               <ListBulletIcon />
             </IconButton>

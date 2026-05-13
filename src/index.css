@@ -96,16 +96,21 @@ body {
 }
 
 #root {
-  width: 1126px;
-  max-width: 100%;
+  width: 100%;
+  max-width: 1600px;
   margin: 0 auto;
   text-align: center;
-  border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
   background-color: var(--bg) !important;
+  padding: 0 24px;
+
+  @media (max-width: 768px) {
+    border-inline: none;
+    padding: 0 16px;
+  }
 }
 
 h1, h2, h3, h4, h5, h6, .rt-Heading {
@@ -117,13 +122,10 @@ h1, h2, h3, h4, h5, h6, .rt-Heading {
 }
 
 h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
+  font-size: clamp(2rem, 8vw, 3.5rem);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  margin: 1.5rem 0;
 }
 
 p, .rt-Text {
@@ -178,4 +180,23 @@ code {
 .notion-content-input::placeholder {
   color: var(--text);
   opacity: 0.3;
+}
+
+.rt-DialogContent {
+  border-radius: 0 !important;
+  border: 1.5px solid var(--border) !important;
+  background-color: var(--bg) !important;
+  
+  @media (max-width: 768px) {
+    width: 98vw !important;
+    max-width: 98vw !important;
+    max-height: 98vh !important;
+    padding: 16px !important;
+  }
+}
+
+.rt-DialogTitle {
+  font-family: var(--heading) !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
 }

@@ -71,12 +71,12 @@ export default function Preferences({ session }) {
 
   return (
     <Container size="2" py="6" px="4">
-      <Flex align="center" gap="4" mb="6">
+      <Flex direction={{ initial: 'column', sm: 'row' }} align={{ initial: 'start', sm: 'center' }} gap="4" mb="6">
         <Button variant="outline" color="gray" onClick={() => setLocation("/")} style={{ cursor: "pointer", borderRadius: 0, fontWeight: 700, borderColor: 'var(--border)', color: 'var(--text-h)' }}>
           <ArrowLeftIcon />
           BACK
         </Button>
-        <Heading size="8" as="h1" style={{ color: 'var(--text-h)', fontWeight: 800, letterSpacing: '-0.04em', margin: 0 }}>
+        <Heading size={{ initial: '7', sm: '8' }} as="h1" style={{ color: 'var(--text-h)', fontWeight: 800, letterSpacing: '-0.04em', margin: 0 }}>
           USER PREFERENCES
         </Heading>
       </Flex>

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Theme } from '@radix-ui/themes';
 import { ThemeContext } from './ThemeContext';
 
@@ -8,6 +8,13 @@ export function ThemeProvider({ children }) {
     if (saved === 'light' || saved === 'dark') return saved;
     return (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
   });
+
+  useEffect(() => {
+    // Sync theme to document
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(theme);
+    document.documentElement.style.colorScheme = theme;
+  }, [theme]);
 
   const [fontSize, setFontSize] = useState(() => {
     const saved = localStorage.getItem('app-font-size');

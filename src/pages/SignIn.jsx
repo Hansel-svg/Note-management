@@ -31,7 +31,7 @@ function SignIn() {
                     <form onSubmit={signIn}>
                         <Flex direction="column" gap="5">
                             <Box style={{ textAlign: "center" }} mb="4">
-                                <Heading size="8" mb="2" style={{ color: 'var(--text-h)', fontWeight: 800, letterSpacing: '-0.04em', textTransform: 'uppercase' }}>
+                                <Heading size={{ initial: '7', sm: '8' }} mb="2" style={{ color: 'var(--text-h)', fontWeight: 800, letterSpacing: '-0.04em', textTransform: 'uppercase' }}>
                                     WELCOME BACK
                                 </Heading>
                                 <Text size="2" style={{ color: 'var(--text)', fontWeight: 600, textTransform: 'uppercase', opacity: 0.6 }}>

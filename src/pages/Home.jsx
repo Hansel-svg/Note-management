@@ -1,6 +1,6 @@
 import { supabase } from "../lib/SupaBaseClient";
-import { Container, Flex, Grid, Text, Box, Heading, Callout } from "@radix-ui/themes";
-import { Share2Icon } from "@radix-ui/react-icons";
+import { Container, Flex, Grid, Text, Box, Heading, Callout, Button, Avatar } from "@radix-ui/themes";
+import { Share2Icon, ArchiveIcon, FileTextIcon, PersonIcon, GearIcon, PlusIcon, ExitIcon, LockClosedIcon } from "@radix-ui/react-icons";
 import { useState, useEffect, useCallback, useRef, useContext } from "react";
 import { useLocation } from "wouter";
 import { ThemeContext } from "../providers/ThemeContext";
@@ -15,6 +15,7 @@ import ManageLockDialog from "../components/dialogs/ManageLockDialog";
 import LabelManagerDialog from "../components/dialogs/LabelManagerDialog";
 import NoteEditorDialog from "../components/dialogs/NoteEditorDialog";
 import ShareNoteDialog from "../components/dialogs/ShareNoteDialog";
+import NotificationBell from "../components/NotificationBell";
 async function hashPassword(password) {
   const msgUint8 = new TextEncoder().encode(password);
   const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
@@ -646,137 +647,216 @@ export default function Home({ session }) {
   };
 
   return (
-    <Container size="3" py="6" px="4">
-      <DashboardHeader 
-        isVerified={isVerified}
-        avatarUrl={avatarUrl}
-        session={session}
-        setLocation={setLocation}
-        handleSignOut={handleSignOut}
-        openCreateDialog={openCreateDialog}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        viewMode={viewMode}
-        setViewMode={setViewMode}
-        onSelectNote={handleNotificationSelect}
-      />
+    <div className="home-container">
+      <div className="dashboard-layout">
+        {/* SIDEBAR - Desktop Only */}
+        <aside className="sidebar">
+          <div className="sidebar-section">
+            <Flex align="center" gap="3" mb="4">
+              <Avatar
+                size="3"
+                src={avatarUrl}
+                fallback={session?.user?.email?.charAt(0).toUpperCase() || "?"}
+                radius="none"
+                style={{ border: '1.5px solid var(--border)' }}
+              />
+              <Box>
+                <Heading size="3" style={{ fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-h)' }}>
+                  {session?.user?.user_metadata?.username || 'USER'}
+                </Heading>
+              </Box>
+            </Flex>
 
-      {unreadNotifications.length > 0 && (
-        <Box mb="6">
-          <Callout.Root color="gray" variant="outline" style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent' }}>
-            <Callout.Icon>
-              <Share2Icon />
-            </Callout.Icon>
-            <Callout.Text style={{ fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-h)' }}>
-              You have {unreadNotifications.length} new shared {unreadNotifications.length === 1 ? 'note' : 'notes'}. 
-              Check the notification bell for details.
-            </Callout.Text>
-          </Callout.Root>
-        </Box>
-      )}
+            <Button 
+              onClick={openCreateDialog} 
+              size="3" 
+              variant="solid" 
+              style={{ width: '100%', cursor: 'pointer', borderRadius: 0, fontWeight: 900, backgroundColor: 'var(--text-h)', color: 'var(--bg)', textTransform: 'uppercase', letterSpacing: '0.1em' }}
+            >
+              <PlusIcon /> ADD NOTE
+            </Button>
+          </div>
 
-      <LabelFilterBar 
-        labels={labels}
-        activeFilterLabels={activeFilterLabels}
-        toggleFilterLabel={toggleFilterLabel}
-        setIsLabelManagerOpen={setIsLabelManagerOpen}
-      />
+          <div className="sidebar-section">
+            <div className="sidebar-title">NAVIGATION</div>
+            <div className="sidebar-nav-item active">
+              <FileTextIcon /> ALL NOTES
+            </div>
+            <div className="sidebar-nav-item" onClick={() => setLocation('/preferences')}>
+              <GearIcon /> PREFERENCES
+            </div>
+            <div className="sidebar-nav-item" onClick={() => setLocation('/forgot-password')}>
+              <LockClosedIcon /> RESET PASSWORD
+            </div>
+            <div className="sidebar-nav-item">
+              <NotificationBell 
+                session={session} 
+                onSelectNote={handleNotificationSelect} 
+                label="NOTIFICATIONS"
+              />
+            </div>
+          </div>
 
-      {notes.length === 0 ? (
-        <Text size="3" style={{ fontWeight: 600, textTransform: 'uppercase', opacity: 0.4, color: 'var(--text)' }}>No notes yet. Click "Add Note" to create one!</Text>
-      ) : filteredNotes.length === 0 ? (
-        <Text size="3" style={{ fontWeight: 600, textTransform: 'uppercase', opacity: 0.4, color: 'var(--text)' }}>
-          {debouncedSearchTerm ? `No notes found matching "${debouncedSearchTerm}".` : 'No notes match your selected labels.'}
-        </Text>
-      ) : (
-        <>
-          {myNotes.length > 0 && (
-            <Box mb="8">
-              <Heading size="4" mb="4" style={{ color: 'var(--text-h)', borderBottom: '1px solid var(--border)', paddingBottom: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                My Notes
-              </Heading>
-              {viewMode === 'grid' ? (
-                <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="4">
-                  {myNotes.map(note => (
-                    <NoteCard 
-                      key={note.id} 
-                      note={note} 
-                      viewMode="grid"
-                      noteColor={noteColor}
-                      titleFontSize={titleFontSize}
-                      fontSize={fontSize}
-                      unlockedNotes={unlockedNotes}
-                      handleEditClick={handleEditClick}
-                      handleTogglePin={handleTogglePin}
-                      handleDeleteClick={handleDeleteClick}
-                    />
-                  ))}
-                </Grid>
-              ) : (
-                <Flex direction="column" gap="4">
-                  {myNotes.map(note => (
-                    <NoteCard 
-                      key={note.id} 
-                      note={note} 
-                      viewMode="list"
-                      noteColor={noteColor}
-                      titleFontSize={titleFontSize}
-                      fontSize={fontSize}
-                      unlockedNotes={unlockedNotes}
-                      handleEditClick={handleEditClick}
-                      handleTogglePin={handleTogglePin}
-                      handleDeleteClick={handleDeleteClick}
-                    />
-                  ))}
-                </Flex>
-              )}
-            </Box>
-          )}
+          <div className="sidebar-section">
+            <div className="sidebar-title">LABELS</div>
+            <LabelFilterBar 
+              labels={labels}
+              activeFilterLabels={activeFilterLabels}
+              toggleFilterLabel={toggleFilterLabel}
+              setIsLabelManagerOpen={setIsLabelManagerOpen}
+              vertical={true}
+            />
+          </div>
 
-          {sharedWithMe.length > 0 && (
+          <Box mt="auto">
+             <Button 
+                onClick={handleSignOut} 
+                variant="ghost" 
+                color="gray" 
+                style={{ width: '100%', justifyContent: 'flex-start', borderRadius: 0, fontWeight: 800, textTransform: 'uppercase' }}
+              >
+               <ExitIcon /> SIGN OUT
+             </Button>
+          </Box>
+        </aside>
+
+        {/* MAIN CONTENT */}
+        <main className="main-content">
+          <DashboardHeader 
+            isVerified={isVerified}
+            avatarUrl={avatarUrl}
+            session={session}
+            setLocation={setLocation}
+            handleSignOut={handleSignOut}
+            openCreateDialog={openCreateDialog}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            onSelectNote={handleNotificationSelect}
+          />
+
+          {unreadNotifications.length > 0 && (
             <Box mb="6">
-              <Heading size="4" mb="4" style={{ color: 'var(--text-h)', borderBottom: '1px solid var(--border)', paddingBottom: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Shared with Me
-              </Heading>
-              {viewMode === 'grid' ? (
-                <Grid columns={{ initial: "1", sm: "2", md: "3" }} gap="4">
-                  {sharedWithMe.map(note => (
-                    <NoteCard 
-                      key={note.id} 
-                      note={note} 
-                      viewMode="grid"
-                      noteColor={noteColor}
-                      titleFontSize={titleFontSize}
-                      fontSize={fontSize}
-                      unlockedNotes={unlockedNotes}
-                      handleEditClick={handleEditClick}
-                      handleTogglePin={handleTogglePin}
-                      handleDeleteClick={handleDeleteClick}
-                    />
-                  ))}
-                </Grid>
-              ) : (
-                <Flex direction="column" gap="4">
-                  {sharedWithMe.map(note => (
-                    <NoteCard 
-                      key={note.id} 
-                      note={note} 
-                      viewMode="list"
-                      noteColor={noteColor}
-                      titleFontSize={titleFontSize}
-                      fontSize={fontSize}
-                      unlockedNotes={unlockedNotes}
-                      handleEditClick={handleEditClick}
-                      handleTogglePin={handleTogglePin}
-                      handleDeleteClick={handleDeleteClick}
-                    />
-                  ))}
-                </Flex>
-              )}
+              <Callout.Root color="gray" variant="outline" style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent' }}>
+                <Callout.Icon>
+                  <Share2Icon />
+                </Callout.Icon>
+                <Callout.Text style={{ fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-h)' }}>
+                  You have {unreadNotifications.length} new shared {unreadNotifications.length === 1 ? 'note' : 'notes'}. 
+                  Check the notification bell for details.
+                </Callout.Text>
+              </Callout.Root>
             </Box>
           )}
-        </>
-      )}
+
+          {/* Label Bar - Only on mobile/tablet */}
+          <Box display={{ initial: 'block', md: 'none' }}>
+            <LabelFilterBar 
+              labels={labels}
+              activeFilterLabels={activeFilterLabels}
+              toggleFilterLabel={toggleFilterLabel}
+              setIsLabelManagerOpen={setIsLabelManagerOpen}
+            />
+          </Box>
+
+          {notes.length === 0 ? (
+            <Text size="3" style={{ fontWeight: 600, textTransform: 'uppercase', opacity: 0.4, color: 'var(--text)' }}>No notes yet. Click "Add Note" to create one!</Text>
+          ) : filteredNotes.length === 0 ? (
+            <Text size="3" style={{ fontWeight: 600, textTransform: 'uppercase', opacity: 0.4, color: 'var(--text)' }}>
+              {debouncedSearchTerm ? `No notes found matching "${debouncedSearchTerm}".` : 'No notes match your selected labels.'}
+            </Text>
+          ) : (
+            <>
+              {myNotes.length > 0 && (
+                <Box mb="8">
+                  <Heading size="4" mb="4" style={{ color: 'var(--text-h)', borderBottom: '1px solid var(--border)', paddingBottom: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    My Notes
+                  </Heading>
+                  {viewMode === 'grid' ? (
+                    <div className="notes-grid">
+                      {myNotes.map(note => (
+                        <NoteCard 
+                          key={note.id} 
+                          note={note} 
+                          viewMode="grid"
+                          noteColor={noteColor}
+                          titleFontSize={titleFontSize}
+                          fontSize={fontSize}
+                          unlockedNotes={unlockedNotes}
+                          handleEditClick={handleEditClick}
+                          handleTogglePin={handleTogglePin}
+                          handleDeleteClick={handleDeleteClick}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <Flex direction="column" gap="4">
+                      {myNotes.map(note => (
+                        <NoteCard 
+                          key={note.id} 
+                          note={note} 
+                          viewMode="list"
+                          noteColor={noteColor}
+                          titleFontSize={titleFontSize}
+                          fontSize={fontSize}
+                          unlockedNotes={unlockedNotes}
+                          handleEditClick={handleEditClick}
+                          handleTogglePin={handleTogglePin}
+                          handleDeleteClick={handleDeleteClick}
+                        />
+                      ))}
+                    </Flex>
+                  )}
+                </Box>
+              )}
+
+              {sharedWithMe.length > 0 && (
+                <Box mb="6">
+                  <Heading size="4" mb="4" style={{ color: 'var(--text-h)', borderBottom: '1px solid var(--border)', paddingBottom: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Shared with Me
+                  </Heading>
+                  {viewMode === 'grid' ? (
+                    <div className="notes-grid">
+                      {sharedWithMe.map(note => (
+                        <NoteCard 
+                          key={note.id} 
+                          note={note} 
+                          viewMode="grid"
+                          noteColor={noteColor}
+                          titleFontSize={titleFontSize}
+                          fontSize={fontSize}
+                          unlockedNotes={unlockedNotes}
+                          handleEditClick={handleEditClick}
+                          handleTogglePin={handleTogglePin}
+                          handleDeleteClick={handleDeleteClick}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <Flex direction="column" gap="4">
+                      {sharedWithMe.map(note => (
+                        <NoteCard 
+                          key={note.id} 
+                          note={note} 
+                          viewMode="list"
+                          noteColor={noteColor}
+                          titleFontSize={titleFontSize}
+                          fontSize={fontSize}
+                          unlockedNotes={unlockedNotes}
+                          handleEditClick={handleEditClick}
+                          handleTogglePin={handleTogglePin}
+                          handleDeleteClick={handleDeleteClick}
+                        />
+                      ))}
+                    </Flex>
+                  )}
+                </Box>
+              )}
+            </>
+          )}
+        </main>
+      </div>
 
       <NoteEditorDialog 
         open={isDialogOpen}
@@ -869,7 +949,7 @@ export default function Home({ session }) {
         noteColor={noteColor}
       />
 
-    </Container>
+    </div>
   );
 }
 

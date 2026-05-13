@@ -6,9 +6,10 @@ import {
 } from "@radix-ui/themes";
 import { BellIcon, EnvelopeOpenIcon, Share2Icon, LockClosedIcon } from "@radix-ui/react-icons";
 
-export default function NotificationBell({ session, onSelectNote }) {
+export default function NotificationBell({ session, onSelectNote, label }) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [instanceId] = useState(() => Math.random().toString(36).substring(7));
 
   const fetchNotifications = useCallback(async () => {
     const { data, error } = await supabase
@@ -32,7 +33,7 @@ export default function NotificationBell({ session, onSelectNote }) {
     }, 0);
 
     const channel = supabase
-      .channel('notifications-live')
+      .channel(`notifications-live-${instanceId}`)
       .on('postgres_changes', { 
         event: 'INSERT', 
         schema: 'public', 
@@ -76,34 +77,38 @@ export default function NotificationBell({ session, onSelectNote }) {
   return (
     <Popover.Root>
       <Popover.Trigger>
-        <Box style={{ position: 'relative', cursor: 'pointer' }}>
-          <IconButton variant="ghost" color="gray" size="2" style={{ color: 'var(--text-h)' }}>
-            <BellIcon width="20" height="20" />
-          </IconButton>
-          {unreadCount > 0 && (
-            <Box
-              style={{
-                position: 'absolute',
-                top: '-2px',
-                right: '-2px',
-                backgroundColor: 'var(--text-h)',
-                color: 'var(--bg)',
-                borderRadius: 0,
-                minWidth: '16px',
-                height: '16px',
-                padding: '0 4px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '10px',
-                fontWeight: '900',
-                pointerEvents: 'none',
-                border: '1px solid var(--bg)'
-              }}
-            >
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </Box>
-          )}
+        <Box style={{ cursor: 'pointer', width: label ? '100%' : 'auto' }}>
+          <Flex align="center" gap="2" style={{ position: 'relative' }}>
+            <IconButton variant="ghost" color="gray" size="2" style={{ color: 'var(--text-h)', pointerEvents: 'none' }}>
+              <BellIcon width="20" height="20" />
+            </IconButton>
+            {label && <Text size="2" style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-h)' }}>{label}</Text>}
+            {unreadCount > 0 && (
+              <Box
+                style={{
+                  position: 'absolute',
+                  top: '-2px',
+                  left: '12px',
+                  backgroundColor: 'var(--text-h)',
+                  color: 'var(--bg)',
+                  borderRadius: 0,
+                  minWidth: '16px',
+                  height: '16px',
+                  padding: '0 4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '10px',
+                  fontWeight: '900',
+                  pointerEvents: 'none',
+                  border: '1px solid var(--bg)',
+                  zIndex: 1
+                }}
+              >
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </Box>
+            )}
+          </Flex>
         </Box>
       </Popover.Trigger>
       <Popover.Content width="340px" style={{ padding: '0', borderRadius: 0, border: '1.5px solid var(--border)' }}>

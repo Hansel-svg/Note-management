@@ -2,7 +2,7 @@ import { supabase } from "../lib/SupaBaseClient";
 import { useState } from "react";
 import { Container, Card, Flex, Heading, Text, TextField, Button, Box, Callout } from "@radix-ui/themes";
 import { InfoCircledIcon, CheckCircledIcon } from "@radix-ui/react-icons";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 
 export default function UpdatePassword() {
   const [password, setPassword] = useState("");
@@ -45,7 +45,7 @@ export default function UpdatePassword() {
           <form onSubmit={handleUpdate}>
             <Flex direction="column" gap="5">
               <Box style={{ textAlign: "center" }} mb="4">
-                <Heading size="8" mb="2" style={{ color: 'var(--text-h)', fontWeight: 800, letterSpacing: '-0.04em', textTransform: 'uppercase' }}>
+                <Heading size={{ initial: '7', sm: '8' }} mb="2" style={{ color: 'var(--text-h)', fontWeight: 800, letterSpacing: '-0.04em', textTransform: 'uppercase' }}>
                   NEW PASSWORD
                 </Heading>
                 <Text size="2" style={{ color: 'var(--text)', fontWeight: 600, textTransform: 'uppercase', opacity: 0.6 }}>
@@ -116,6 +116,10 @@ export default function UpdatePassword() {
                   {isLoading ? "UPDATING..." : "UPDATE PASSWORD"}
                 </Button>
               </Flex>
+              
+              <Text size="2" align="center" mt="4" style={{ fontWeight: 700, textTransform: 'uppercase', color: 'var(--text)' }}>
+                Changed your mind? <Link href="/" style={{ color: 'var(--text-h)', textDecoration: 'underline', fontWeight: 800 }}>Back to dashboard</Link>
+              </Text>
             </Flex>
           </form>
         </Card>
