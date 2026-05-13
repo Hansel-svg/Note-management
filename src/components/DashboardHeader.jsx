@@ -1,5 +1,6 @@
 import { Flex, Heading, Button, Box, TextField, Avatar, Callout, IconButton } from "@radix-ui/themes";
 import { InfoCircledIcon, LockClosedIcon, GearIcon, GridIcon, ListBulletIcon, ExitIcon, PlusIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
+import NotificationBell from "./NotificationBell";
 
 export default function DashboardHeader({
   isVerified,
@@ -33,6 +34,7 @@ export default function DashboardHeader({
           My Notes
         </Heading>
         <Flex gap="3" align="center">
+          <NotificationBell session={session} />
           <Avatar
             size="3"
             src={avatarUrl}

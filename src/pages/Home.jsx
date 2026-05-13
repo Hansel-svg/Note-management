@@ -1,5 +1,6 @@
 import { supabase } from "../lib/SupaBaseClient";
-import { Container, Flex, Grid, Text, Box, Heading } from "@radix-ui/themes";
+import { Container, Flex, Grid, Text, Box, Heading, Callout } from "@radix-ui/themes";
+import { Share2Icon } from "@radix-ui/react-icons";
 import { useState, useEffect, useCallback, useRef, useContext } from "react";
 import { useLocation } from "wouter";
 import { ThemeContext } from "../providers/ThemeContext";
@@ -60,6 +61,7 @@ export default function Home({ session }) {
   const [shareTargetNoteId, setShareTargetNoteId] = useState(null);
 
   const [activeEditors, setActiveEditors] = useState([]);
+  const [unreadNotifications, setUnreadNotifications] = useState([]);
 
 
   useEffect(() => {
@@ -213,13 +215,48 @@ export default function Home({ session }) {
     }
   }, [session, updateFontSize, updateTitleFontSize, updateNoteColor]);
 
+  const fetchUnreadNotifications = useCallback(async () => {
+    if (!session?.user?.id) return;
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .eq('is_read', false)
+      .order('created_at', { ascending: false });
+    
+    if (!error && data) {
+      setUnreadNotifications(data);
+    }
+  }, [session]);
+
   useEffect(() => {
     setTimeout(() => {
       checkVerification();
       fetchNotes();
       fetchLabels();
+      fetchUnreadNotifications();
     }, 0);
-  }, [session, checkVerification, fetchNotes, fetchLabels]);
+  }, [session, checkVerification, fetchNotes, fetchLabels, fetchUnreadNotifications]);
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    const channel = supabase
+      .channel('home-notifications')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'notifications', 
+        filter: `user_id=eq.${session.user.id}` 
+      }, () => {
+        fetchUnreadNotifications();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session, fetchUnreadNotifications]);
 
   const handleSignOut = async () => {
     try {
@@ -589,6 +626,20 @@ export default function Home({ session }) {
         viewMode={viewMode}
         setViewMode={setViewMode}
       />
+
+      {unreadNotifications.length > 0 && (
+        <Box mb="6">
+          <Callout.Root color="cyan" variant="soft">
+            <Callout.Icon>
+              <Share2Icon />
+            </Callout.Icon>
+            <Callout.Text>
+              You have {unreadNotifications.length} new shared {unreadNotifications.length === 1 ? 'note' : 'notes'}. 
+              Check the notification bell for details.
+            </Callout.Text>
+          </Callout.Root>
+        </Box>
+      )}
 
       <LabelFilterBar 
         labels={labels}
