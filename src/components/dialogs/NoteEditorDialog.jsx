@@ -58,6 +58,7 @@ export default function NoteEditorDialog({
             )}
 
             {isSaving && <Text color="cyan" size="2">Saving...</Text>}
+            {!isSaving && activeEditors.length > 0 && <Text color="gray" size="2">Shared session active</Text>}
             {isReadOnly && (
               <Flex align="center" gap="1" style={{ color: 'var(--gray-10)' }}>
                 <EyeOpenIcon />
@@ -138,6 +139,7 @@ export default function NoteEditorDialog({
             readOnly={!canEdit}
             placeholder="Untitled"
             className="notion-title-input"
+            autoFocus
             style={{ 
               fontSize: `${titleFontSize}px`,
               cursor: !canEdit ? 'default' : undefined,

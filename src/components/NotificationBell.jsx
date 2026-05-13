@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/SupaBaseClient";
 import { 
   Box, IconButton, Text, Popover, Flex, 
@@ -6,14 +6,30 @@ import {
 } from "@radix-ui/themes";
 import { BellIcon, EnvelopeOpenIcon, Share2Icon, LockClosedIcon } from "@radix-ui/react-icons";
 
-export default function NotificationBell({ session }) {
+export default function NotificationBell({ session, onSelectNote }) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+
+  const fetchNotifications = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (!error && data) {
+      setNotifications(data);
+      setUnreadCount(data.filter(n => !n.is_read).length);
+    }
+  }, [session]);
 
   useEffect(() => {
     if (!session?.user?.id) return;
 
-    fetchNotifications();
+    setTimeout(() => {
+      fetchNotifications();
+    }, 0);
 
     const channel = supabase
       .channel('notifications-live')
@@ -31,21 +47,7 @@ export default function NotificationBell({ session }) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [session]);
-
-  const fetchNotifications = async () => {
-    const { data, error } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', session.user.id)
-      .order('created_at', { ascending: false })
-      .limit(20);
-
-    if (!error && data) {
-      setNotifications(data);
-      setUnreadCount(data.filter(n => !n.is_read).length);
-    }
-  };
+  }, [session, fetchNotifications]);
 
   const markAllAsRead = async () => {
     const { error } = await supabase
@@ -66,7 +68,9 @@ export default function NotificationBell({ session }) {
       setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, is_read: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
     }
-    // Optionally trigger a scroll to the note or highlight it
+    if (notif.content?.note_id && onSelectNote) {
+      onSelectNote(notif.content.note_id);
+    }
   };
 
   return (

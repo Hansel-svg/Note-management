@@ -161,7 +161,7 @@ export default function NoteCard({
               </IconButton>
             </Flex>
           ) : (
-            <Box style={{ marginLeft: '16px', width: '72px' }} /> /* spacer to align */
+            <Box style={{ marginLeft: '16px', width: '72px' }} />
           )}
         </Flex>
       )}

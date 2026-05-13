@@ -229,6 +229,55 @@ export default function Home({ session }) {
     }
   }, [session]);
 
+  const openEditorForNote = useCallback((note) => {
+    setNoteTitle(note.title);
+    setNoteContent(note.content);
+    titleRef.current = note.title;
+    contentRef.current = note.content;
+    const urls = note.image_urls || [];
+    setNoteImageUrls(urls);
+    imageUrlsRef.current = urls;
+    setEditingNoteId(note.id);
+    currentNoteIdRef.current = note.id;
+    setSelectedNoteLabels(note.note_labels ? note.note_labels.map(nl => nl.labels.id) : []);
+    setIsDialogOpen(true);
+  }, []);
+
+  const handleEditClick = useCallback((note) => {
+    if (note.password_hash && !unlockedNotes.includes(note.id)) {
+      setUnlockTargetNote(note);
+      setUnlockAction('edit');
+      setUnlockPassword('');
+      setUnlockError('');
+      setUnlockDialogOpen(true);
+      return;
+    }
+    openEditorForNote(note);
+  }, [unlockedNotes, openEditorForNote]);
+
+  const handleNotificationSelect = useCallback((noteId) => {
+    const note = notes.find(n => n.id === noteId);
+    if (note) {
+      handleEditClick(note);
+    } else {
+      supabase.from('notes').select('*, note_labels(labels(*))').eq('id', noteId).single()
+        .then(({ data }) => {
+          if (data) handleEditClick(data);
+        });
+    }
+  }, [notes, handleEditClick]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        document.getElementById('search-input')?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   useEffect(() => {
     setTimeout(() => {
       checkVerification();
@@ -279,31 +328,7 @@ export default function Home({ session }) {
     setIsDialogOpen(true);
   };
 
-  const handleEditClick = (note) => {
-    if (note.password_hash && !unlockedNotes.includes(note.id)) {
-      setUnlockTargetNote(note);
-      setUnlockAction('edit');
-      setUnlockPassword('');
-      setUnlockError('');
-      setUnlockDialogOpen(true);
-      return;
-    }
-    openEditorForNote(note);
-  };
 
-  const openEditorForNote = (note) => {
-    setNoteTitle(note.title);
-    setNoteContent(note.content);
-    titleRef.current = note.title;
-    contentRef.current = note.content;
-    const urls = note.image_urls || [];
-    setNoteImageUrls(urls);
-    imageUrlsRef.current = urls;
-    setEditingNoteId(note.id);
-    currentNoteIdRef.current = note.id;
-    setSelectedNoteLabels(note.note_labels ? note.note_labels.map(nl => nl.labels.id) : []);
-    setIsDialogOpen(true);
-  };
 
   const handleDeleteClick = (e, note) => {
     e.stopPropagation();
@@ -457,21 +482,29 @@ export default function Home({ session }) {
   };
 
   const filteredNotes = notes.filter(note => {
-    if (activeFilterLabels.length === 0) return true;
-    
-    if (note.password_hash && !unlockedNotes.includes(note.id)) {
-      return false;
-    }
-
     const noteLabelIds = note.note_labels?.map(nl => nl.labels?.id) || [];
-    return activeFilterLabels.every(id => noteLabelIds.includes(id));
+    
+    const matchesLabels = activeFilterLabels.length === 0 || activeFilterLabels.every(id => noteLabelIds.includes(id));
+    if (!matchesLabels) return false;
+
+
+    if (!debouncedSearchTerm) return true;
+
+    const searchLower = debouncedSearchTerm.toLowerCase();
+    const titleMatch = note.title?.toLowerCase().includes(searchLower);
+    const contentMatch = note.content?.toLowerCase().includes(searchLower);
+    const labelMatch = note.note_labels?.some(nl => nl.labels?.name.toLowerCase().includes(searchLower));
+
+    return titleMatch || contentMatch || labelMatch;
   });
 
   const myNotes = filteredNotes.filter(n => n.is_owner !== false);
   const sharedWithMe = filteredNotes.filter(n => n.is_owner === false);
 
   const autosaveNote = async (title, content, id, imageUrls) => {
-    if (!title.trim() && !content.trim() && imageUrls.length === 0) return id;
+    if (!title?.trim() && !content?.trim() && (!imageUrls || imageUrls.length === 0)) {
+      if (!id) return null;
+    }
     if (!session?.user?.id) return id;
     
     if (id) {
@@ -625,6 +658,7 @@ export default function Home({ session }) {
         setSearchTerm={setSearchTerm}
         viewMode={viewMode}
         setViewMode={setViewMode}
+        onSelectNote={handleNotificationSelect}
       />
 
       {unreadNotifications.length > 0 && (

@@ -1,6 +1,7 @@
 import { Flex, Heading, Button, Box, TextField, Avatar, Callout, IconButton } from "@radix-ui/themes";
-import { InfoCircledIcon, LockClosedIcon, GearIcon, GridIcon, ListBulletIcon, ExitIcon, PlusIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
+import { InfoCircledIcon, LockClosedIcon, GearIcon, GridIcon, ListBulletIcon, ExitIcon, PlusIcon, MagnifyingGlassIcon, Cross2Icon } from "@radix-ui/react-icons";
 import NotificationBell from "./NotificationBell";
+import { supabase } from "../lib/SupaBaseClient";
 
 export default function DashboardHeader({
   isVerified,
@@ -12,7 +13,8 @@ export default function DashboardHeader({
   searchTerm,
   setSearchTerm,
   viewMode,
-  setViewMode
+  setViewMode,
+  onSelectNote
 }) {
   return (
     <>
@@ -24,6 +26,21 @@ export default function DashboardHeader({
             </Callout.Icon>
             <Callout.Text>
               Your account is not verified. Please verify your email to complete the registration process.
+              <Button 
+                variant="ghost" 
+                size="1" 
+                ml="3" 
+                onClick={async () => {
+                  const { error } = await supabase.auth.resend({
+                    type: 'signup',
+                    email: session.user.email
+                  });
+                  if (!error) alert('Verification email resent!');
+                }}
+                style={{ cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                Resend email
+              </Button>
             </Callout.Text>
           </Callout.Root>
         </Box>
@@ -34,7 +51,7 @@ export default function DashboardHeader({
           My Notes
         </Heading>
         <Flex gap="3" align="center">
-          <NotificationBell session={session} />
+          <NotificationBell session={session} onSelectNote={onSelectNote} />
           <Avatar
             size="3"
             src={avatarUrl}
@@ -65,7 +82,8 @@ export default function DashboardHeader({
         </Flex>
         <Flex gap="3" align="center" style={{ flexGrow: 1, justifyContent: 'flex-end' }}>
           <TextField.Root 
-            placeholder="Search notes..." 
+            id="search-input"
+            placeholder="Search notes or labels... (/)" 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{ width: '100%', maxWidth: '300px' }}
@@ -74,6 +92,19 @@ export default function DashboardHeader({
             <TextField.Slot>
               <MagnifyingGlassIcon height="16" width="16" />
             </TextField.Slot>
+            {searchTerm && (
+              <TextField.Slot>
+                <IconButton 
+                  size="1" 
+                  variant="ghost" 
+                  color="gray" 
+                  onClick={() => setSearchTerm('')}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <Cross2Icon width="14" height="14" />
+                </IconButton>
+              </TextField.Slot>
+            )}
           </TextField.Root>
           <Flex gap="2">
             <IconButton 
