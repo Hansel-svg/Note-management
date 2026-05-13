@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../lib/SupaBaseClient";
 import {
   Dialog, Flex, Text, TextField, Button, Select, Callout,
-  Table, Badge, IconButton, Separator, Box, Heading
+  IconButton, Separator, Box, Heading
 } from "@radix-ui/themes";
 import { Share2Icon, TrashIcon, CheckCircledIcon, CrossCircledIcon } from "@radix-ui/react-icons";
 
@@ -14,22 +14,24 @@ export default function ShareNoteDialog({ open, onOpenChange, noteId, noteColor 
   const [fetchingShares, setFetchingShares] = useState(false);
   const [message, setMessage] = useState(null);
 
-  const fetchShares = async () => {
+  const fetchShares = useCallback(async () => {
     if (!noteId) return;
     setFetchingShares(true);
     const { data, error } = await supabase.rpc('get_note_shares', { p_note_id: noteId });
     if (!error && data) setShares(data);
     setFetchingShares(false);
-  };
+  }, [noteId]);
 
   useEffect(() => {
     if (open && noteId) {
-      setEmail('');
-      setPermission('read');
-      setMessage(null);
-      fetchShares();
+      setTimeout(() => {
+        setEmail('');
+        setPermission('read');
+        setMessage(null);
+        fetchShares();
+      }, 0);
     }
-  }, [open, noteId]);
+  }, [open, noteId, fetchShares]);
 
   const handleShare = async () => {
     if (!email.trim()) return;
@@ -80,7 +82,6 @@ export default function ShareNoteDialog({ open, onOpenChange, noteId, noteColor 
           Share this note with others by their registered email address.
         </Dialog.Description>
 
-        {/* Add new share */}
         <Flex gap="2" mb="3" align="end">
           <Box style={{ flexGrow: 1 }}>
             <Text as="label" size="2" weight="bold" mb="1" style={{ display: 'block' }}>
@@ -117,7 +118,6 @@ export default function ShareNoteDialog({ open, onOpenChange, noteId, noteColor 
           </Button>
         </Flex>
 
-        {/* Feedback callout */}
         {message && (
           <Callout.Root 
             color={message.type === 'success' ? 'green' : 'red'} 
@@ -131,7 +131,6 @@ export default function ShareNoteDialog({ open, onOpenChange, noteId, noteColor 
           </Callout.Root>
         )}
 
-        {/* Existing shares list */}
         {shares.length > 0 && (
           <>
             <Separator size="4" mb="3" />

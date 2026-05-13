@@ -2,7 +2,7 @@ import { Container, Card, Flex, Heading, Text, Box, Switch, Slider, Select, Butt
 import { ArrowLeftIcon, UploadIcon } from "@radix-ui/react-icons";
 import { useLocation } from "wouter";
 import { useContext, useState, useEffect, useRef } from "react";
-import { ThemeContext } from "../providers/ThemeProvider";
+import { ThemeContext } from "../providers/ThemeContext";
 import { supabase } from "../lib/SupaBaseClient";
 
 export default function Preferences({ session }) {
@@ -30,7 +30,7 @@ export default function Preferences({ session }) {
       }
     }
     loadProfile();
-  }, [session]);
+  }, [session, updateFontSize, updateTitleFontSize, updateNoteColor]);
 
   const handleAvatarUpload = async (event) => {
     try {

@@ -66,7 +66,6 @@ export default function NoteEditorDialog({
             )}
           </Flex>
           <Flex gap="3" align="center">
-            {/* Share button — owners only */}
             {editingNoteId && isOwner && onShareClick && (
               <IconButton
                 variant="ghost"
@@ -78,7 +77,6 @@ export default function NoteEditorDialog({
                 <Share2Icon />
               </IconButton>
             )}
-            {/* Lock button — owners only */}
             {editingNoteId && isOwner && (
               <IconButton 
                 variant="ghost" 
@@ -98,7 +96,6 @@ export default function NoteEditorDialog({
           </Flex>
         </Flex>
 
-        {/* Shared Info */}
         {!isOwner && (
           <Box mb="4" p="2" style={{ backgroundColor: 'var(--gray-a2)', borderRadius: '8px' }}>
             <Text size="1" color="gray" style={{ display: 'block' }}>
@@ -112,7 +109,6 @@ export default function NoteEditorDialog({
           </Box>
         )}
 
-        {/* Read-only callout */}
         {isReadOnly && (
           <Callout.Root color="gray" size="1" mb="3">
             <Callout.Text>You have read-only access to this note.</Callout.Text>
@@ -120,7 +116,6 @@ export default function NoteEditorDialog({
         )}
 
         <Flex direction="column" gap="4" style={{ flexGrow: 1 }}>
-          {/* Label toggles — only for owners */}
           {isOwner && labels.length > 0 && (
             <Flex gap="2" wrap="wrap">
               {labels.map(label => (
@@ -191,7 +186,6 @@ export default function NoteEditorDialog({
           )}
         </Flex>
 
-        {/* Image upload — only for users who can edit */}
         {canEdit && (
           <Flex justify="start" mt="4">
             <input 

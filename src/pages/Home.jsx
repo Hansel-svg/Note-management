@@ -1,9 +1,8 @@
 import { supabase } from "../lib/SupaBaseClient";
-import { Container, Flex, Grid, Text, Box, Callout, Heading, Badge } from "@radix-ui/themes";
-import { InfoCircledIcon } from "@radix-ui/react-icons";
+import { Container, Flex, Grid, Text, Box, Heading } from "@radix-ui/themes";
 import { useState, useEffect, useCallback, useRef, useContext } from "react";
 import { useLocation } from "wouter";
-import { ThemeContext } from "../providers/ThemeProvider";
+import { ThemeContext } from "../providers/ThemeContext";
 import "./Home.css";
 
 import DashboardHeader from "../components/DashboardHeader";
@@ -194,31 +193,33 @@ export default function Home({ session }) {
     }
   };
 
-  useEffect(() => {
-    async function checkVerification() {
-      if (!session?.user?.id) return;
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('is_verified, avatar_url, default_font_size, default_title_font_size, default_note_color')
-        .eq('id', session.user.id)
-        .single();
-        
-      if (!error && data) {
-        setIsVerified(data.is_verified === true);
-        if (data.avatar_url) {
-          setAvatarUrl(data.avatar_url);
-        }
-        if (data.default_font_size) updateFontSize(data.default_font_size);
-        if (data.default_title_font_size) updateTitleFontSize(data.default_title_font_size);
-        if (data.default_note_color) updateNoteColor(data.default_note_color);
-      }
-    }
+  const checkVerification = useCallback(async () => {
+    if (!session?.user?.id) return;
     
-    checkVerification();
-    fetchNotes();
-    fetchLabels();
-  }, [session, fetchNotes, fetchLabels]);
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('is_verified, avatar_url, default_font_size, default_title_font_size, default_note_color')
+      .eq('id', session.user.id)
+      .single();
+      
+    if (!error && data) {
+      setIsVerified(data.is_verified === true);
+      if (data.avatar_url) {
+        setAvatarUrl(data.avatar_url);
+      }
+      if (data.default_font_size) updateFontSize(data.default_font_size);
+      if (data.default_title_font_size) updateTitleFontSize(data.default_title_font_size);
+      if (data.default_note_color) updateNoteColor(data.default_note_color);
+    }
+  }, [session, updateFontSize, updateTitleFontSize, updateNoteColor]);
+
+  useEffect(() => {
+    setTimeout(() => {
+      checkVerification();
+      fetchNotes();
+      fetchLabels();
+    }, 0);
+  }, [session, checkVerification, fetchNotes, fetchLabels]);
 
   const handleSignOut = async () => {
     try {
@@ -576,19 +577,6 @@ export default function Home({ session }) {
 
   return (
     <Container size="3" py="6" px="4">
-      {!isVerified && (
-        <Box mb="6">
-          <Callout.Root color="amber" variant="surface">
-            <Callout.Icon>
-              <InfoCircledIcon />
-            </Callout.Icon>
-            <Callout.Text>
-              Your account is not verified. Please verify your email to complete the registration process.
-            </Callout.Text>
-          </Callout.Root>
-        </Box>
-      )}
-
       <DashboardHeader 
         isVerified={isVerified}
         avatarUrl={avatarUrl}
@@ -723,9 +711,9 @@ export default function Home({ session }) {
         labels={labels}
         selectedNoteLabels={selectedNoteLabels}
         handleToggleNoteLabel={handleToggleNoteLabel}
-        hasPassword={!!notes.find(n => n.id === currentNoteIdRef.current)?.password_hash}
-        isOwner={notes.find(n => n.id === currentNoteIdRef.current)?.is_owner !== false}
-        sharePermission={notes.find(n => n.id === currentNoteIdRef.current)?.share_permission || null}
+        hasPassword={!!notes.find(n => n.id === editingNoteId)?.password_hash}
+        isOwner={notes.find(n => n.id === editingNoteId)?.is_owner !== false}
+        sharePermission={notes.find(n => n.id === editingNoteId)?.share_permission || null}
         onManageLockClick={() => {
           setManageLockCurrentPassword('');
           setManageLockNewPassword('');
@@ -734,13 +722,13 @@ export default function Home({ session }) {
           setIsManageLockOpen(true);
         }}
         onShareClick={() => {
-          setShareTargetNoteId(currentNoteIdRef.current);
+          setShareTargetNoteId(editingNoteId);
           setIsShareDialogOpen(true);
         }}
         session={session}
         activeEditors={activeEditors}
-        ownerEmail={notes.find(n => n.id === currentNoteIdRef.current)?.owner_email}
-        sharedAt={notes.find(n => n.id === currentNoteIdRef.current)?.shared_at}
+        ownerEmail={notes.find(n => n.id === editingNoteId)?.owner_email}
+        sharedAt={notes.find(n => n.id === editingNoteId)?.shared_at}
       />
 
       <LabelManagerDialog 
@@ -777,7 +765,7 @@ export default function Home({ session }) {
         open={isManageLockOpen}
         onOpenChange={setIsManageLockOpen}
         noteColor={noteColor}
-        hasPassword={!!notes.find(n => n.id === currentNoteIdRef.current)?.password_hash}
+        hasPassword={!!notes.find(n => n.id === editingNoteId)?.password_hash}
         manageLockError={manageLockError}
         setManageLockError={setManageLockError}
         manageLockCurrentPassword={manageLockCurrentPassword}

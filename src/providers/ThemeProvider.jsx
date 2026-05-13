@@ -1,57 +1,65 @@
-import React, { createContext, useState, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Theme } from '@radix-ui/themes';
-
-export const ThemeContext = createContext();
+import { ThemeContext } from './ThemeContext';
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState('dark');
-  const [fontSize, setFontSize] = useState(16);
-  const [titleFontSize, setTitleFontSize] = useState(32);
-  const [noteColor, setNoteColor] = useState('surface');
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem('app-theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+    return (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+  });
 
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('app-theme');
-    if (savedTheme === 'light' || savedTheme === 'dark') {
-      setTheme(savedTheme);
-    } else {
-      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-        setTheme('light');
-      }
-    }
+  const [fontSize, setFontSize] = useState(() => {
+    const saved = localStorage.getItem('app-font-size');
+    return saved ? parseInt(saved, 10) : 16;
+  });
 
-    const savedFontSize = localStorage.getItem('app-font-size');
-    if (savedFontSize) setFontSize(parseInt(savedFontSize, 10));
+  const [titleFontSize, setTitleFontSize] = useState(() => {
+    const saved = localStorage.getItem('app-title-font-size');
+    return saved ? parseInt(saved, 10) : 32;
+  });
 
-    const savedTitleFontSize = localStorage.getItem('app-title-font-size');
-    if (savedTitleFontSize) setTitleFontSize(parseInt(savedTitleFontSize, 10));
+  const [noteColor, setNoteColor] = useState(() => {
+    const saved = localStorage.getItem('app-note-color');
+    return saved || 'surface';
+  });
 
-    const savedNoteColor = localStorage.getItem('app-note-color');
-    if (savedNoteColor) setNoteColor(savedNoteColor);
+  const toggleTheme = useCallback(() => {
+    setTheme(prev => {
+      const newTheme = prev === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('app-theme', newTheme);
+      return newTheme;
+    });
   }, []);
 
-  const toggleTheme = () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-    localStorage.setItem('app-theme', newTheme);
-  };
-
-  const updateFontSize = (size) => {
+  const updateFontSize = useCallback((size) => {
     setFontSize(size);
     localStorage.setItem('app-font-size', size.toString());
-  };
+  }, []);
 
-  const updateTitleFontSize = (size) => {
+  const updateTitleFontSize = useCallback((size) => {
     setTitleFontSize(size);
     localStorage.setItem('app-title-font-size', size.toString());
-  };
+  }, []);
 
-  const updateNoteColor = (color) => {
+  const updateNoteColor = useCallback((color) => {
     setNoteColor(color);
     localStorage.setItem('app-note-color', color);
-  };
+  }, []);
+
+  const contextValue = useMemo(() => ({
+    theme, 
+    toggleTheme, 
+    fontSize, 
+    updateFontSize, 
+    titleFontSize, 
+    updateTitleFontSize, 
+    noteColor, 
+    updateNoteColor
+  }), [theme, toggleTheme, fontSize, updateFontSize, titleFontSize, updateTitleFontSize, noteColor, updateNoteColor]);
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, fontSize, updateFontSize, titleFontSize, updateTitleFontSize, noteColor, updateNoteColor }}>
+    <ThemeContext.Provider value={contextValue}>
       <Theme 
         appearance={theme} 
         accentColor="cyan" 
@@ -64,3 +72,4 @@ export function ThemeProvider({ children }) {
     </ThemeContext.Provider>
   );
 }
+

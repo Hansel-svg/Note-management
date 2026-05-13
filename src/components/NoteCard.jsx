@@ -2,6 +2,14 @@ import { Card, Flex, Heading, Text, Box, IconButton } from "@radix-ui/themes";
 import { LockClosedIcon, ImageIcon, DrawingPinIcon, DrawingPinFilledIcon, TrashIcon, Share2Icon } from "@radix-ui/react-icons";
 import ShareBadge from "./ShareBadge";
 
+const StatusIcons = ({ note, isLocked }) => (
+  <Flex gap="2" align="center" style={{ color: 'var(--gray-8)' }}>
+    {note.pinned_at && <DrawingPinFilledIcon color="var(--cyan-9)" width="16" height="16" />}
+    {note.password_hash && <LockClosedIcon color={isLocked ? "var(--red-9)" : "var(--cyan-9)"} width="16" height="16" />}
+    {note.is_shared && <Share2Icon width="16" height="16" color="var(--cyan-9)" />}
+  </Flex>
+);
+
 export default function NoteCard({
   note,
   viewMode,
@@ -17,14 +25,6 @@ export default function NoteCard({
   const isOwner = note.is_owner !== false;
   const sharePermission = note.share_permission || null;
 
-  const StatusIcons = () => (
-    <Flex gap="2" align="center" style={{ color: 'var(--gray-8)' }}>
-      {note.pinned_at && <DrawingPinFilledIcon color="var(--cyan-9)" width="16" height="16" />}
-      {note.password_hash && <LockClosedIcon color={isLocked ? "var(--red-9)" : "var(--cyan-9)"} width="16" height="16" />}
-      {note.is_shared && <Share2Icon width="16" height="16" color="var(--cyan-9)" />}
-    </Flex>
-  );
-
   if (viewMode === 'grid') {
     return (
       <Card size="2" variant="surface" className="note-card-hover" onClick={() => handleEditClick(note)} style={{ display: 'flex', flexDirection: 'column', height: '320px', backgroundColor: noteColor === 'surface' ? undefined : `var(--${noteColor}-3)` }}>
@@ -39,7 +39,7 @@ export default function NoteCard({
             <Flex justify="between" align="start" mb="2" style={{ flexShrink: 0 }}>
               <Heading size="6" truncate style={{ fontSize: `${titleFontSize}px`, lineHeight: 1.2, flexGrow: 1, minWidth: 0 }}>{note.title}</Heading>
               <Box ml="2">
-                <StatusIcons />
+                <StatusIcons note={note} isLocked={isLocked} />
               </Box>
             </Flex>
             {!isOwner && (
@@ -116,7 +116,7 @@ export default function NoteCard({
           <Box style={{ flexGrow: 1, minWidth: 0 }}>
             <Flex align="center" gap="2" mb="1">
               <Heading size="6" truncate style={{ fontSize: `${titleFontSize}px`, lineHeight: 1.2 }}>{note.title}</Heading>
-              <StatusIcons />
+              <StatusIcons note={note} isLocked={isLocked} />
             </Flex>
             {!isOwner && (
               <Flex align="center" gap="3" mb="2">

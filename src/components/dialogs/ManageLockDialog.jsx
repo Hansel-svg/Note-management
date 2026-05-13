@@ -48,6 +48,7 @@ export default function ManageLockDialog({
                     placeholder="Current Password" 
                     value={manageLockCurrentPassword} 
                     onChange={(e) => setManageLockCurrentPassword(e.target.value)} 
+                    onKeyDown={(e) => { if (e.key === 'Enter') onSubmit('change'); }}
                     autoComplete="new-password" 
                   />
                   <TextField.Root 
@@ -55,6 +56,7 @@ export default function ManageLockDialog({
                     placeholder="New Password" 
                     value={manageLockNewPassword} 
                     onChange={(e) => setManageLockNewPassword(e.target.value)} 
+                    onKeyDown={(e) => { if (e.key === 'Enter') onSubmit('change'); }}
                     autoComplete="new-password" 
                   />
                   <TextField.Root 
@@ -62,6 +64,7 @@ export default function ManageLockDialog({
                     placeholder="Confirm New Password" 
                     value={manageLockConfirmPassword} 
                     onChange={(e) => setManageLockConfirmPassword(e.target.value)} 
+                    onKeyDown={(e) => { if (e.key === 'Enter') onSubmit('change'); }}
                     autoComplete="new-password" 
                   />
                   <Flex justify="between" mt="3" align="center">
@@ -80,6 +83,7 @@ export default function ManageLockDialog({
                     placeholder="Current Password" 
                     value={manageLockCurrentPassword} 
                     onChange={(e) => setManageLockCurrentPassword(e.target.value)} 
+                    onKeyDown={(e) => { if (e.key === 'Enter') onSubmit('remove'); }}
                     autoComplete="new-password" 
                   />
                   <Flex justify="between" mt="3" align="center">
@@ -103,6 +107,7 @@ export default function ManageLockDialog({
                 placeholder="New Password" 
                 value={manageLockNewPassword} 
                 onChange={(e) => setManageLockNewPassword(e.target.value)} 
+                onKeyDown={(e) => { if (e.key === 'Enter') onSubmit('set'); }}
                 autoComplete="new-password" 
               />
               <TextField.Root 
@@ -110,6 +115,7 @@ export default function ManageLockDialog({
                 placeholder="Confirm New Password" 
                 value={manageLockConfirmPassword} 
                 onChange={(e) => setManageLockConfirmPassword(e.target.value)} 
+                onKeyDown={(e) => { if (e.key === 'Enter') onSubmit('set'); }}
                 autoComplete="new-password" 
               />
             </Flex>
