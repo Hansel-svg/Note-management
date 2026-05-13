@@ -72,97 +72,111 @@ export default function ShareNoteDialog({ open, onOpenChange, noteId, noteColor 
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Content 
         maxWidth="520px"
-        style={{ backgroundColor: noteColor === 'surface' ? undefined : `var(--${noteColor}-2)` }}
+        style={{ 
+          backgroundColor: 'var(--bg)', 
+          borderRadius: 0, 
+          border: '1.5px solid var(--border)' 
+        }}
       >
-        <Flex align="center" gap="2" mb="1">
-          <Share2Icon />
-          <Dialog.Title mb="0">Share Note</Dialog.Title>
+        <Flex align="center" gap="2" mb="1" style={{ color: 'var(--text-h)' }}>
+          <Share2Icon width="20" height="20" />
+          <Dialog.Title mb="0" style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Share Note</Dialog.Title>
         </Flex>
-        <Dialog.Description size="2" color="gray" mb="4">
+        <Dialog.Description size="2" color="gray" mb="5" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.02em', opacity: 0.6 }}>
           Share this note with others by their registered email address.
         </Dialog.Description>
 
-        <Flex gap="2" mb="3" align="end">
+        <Flex gap="2" mb="4" align="end">
           <Box style={{ flexGrow: 1 }}>
-            <Text as="label" size="2" weight="bold" mb="1" style={{ display: 'block' }}>
+            <Text as="label" size="1" weight="bold" mb="1" style={{ display: 'block', textTransform: 'uppercase', color: 'var(--text-h)' }}>
               Recipient Email
             </Text>
             <TextField.Root
               type="email"
-              placeholder="colleague@example.com"
+              placeholder="COLLEAGUE@EXAMPLE.COM"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleShare(); }}
               autoComplete="off"
+              style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent' }}
             />
           </Box>
           <Box>
-            <Text as="label" size="2" weight="bold" mb="1" style={{ display: 'block' }}>
+            <Text as="label" size="1" weight="bold" mb="1" style={{ display: 'block', textTransform: 'uppercase', color: 'var(--text-h)' }}>
               Permission
             </Text>
             <Select.Root value={permission} onValueChange={setPermission}>
-              <Select.Trigger style={{ cursor: 'pointer', minWidth: '110px' }} />
-              <Select.Content>
-                <Select.Item value="read" style={{ cursor: 'pointer' }}>Read Only</Select.Item>
-                <Select.Item value="edit" style={{ cursor: 'pointer' }}>Can Edit</Select.Item>
+              <Select.Trigger style={{ cursor: 'pointer', minWidth: '110px', borderRadius: 0, border: '1.5px solid var(--border)' }} />
+              <Select.Content style={{ borderRadius: 0, border: '1px solid var(--border)' }}>
+                <Select.Item value="read" style={{ cursor: 'pointer' }}>READ ONLY</Select.Item>
+                <Select.Item value="edit" style={{ cursor: 'pointer' }}>CAN EDIT</Select.Item>
               </Select.Content>
             </Select.Root>
           </Box>
           <Button 
-            color="cyan" 
+            color="gray" 
             onClick={handleShare} 
             disabled={loading || !email.trim()}
-            style={{ cursor: 'pointer' }}
+            style={{ 
+              cursor: 'pointer', 
+              borderRadius: 0, 
+              fontWeight: 800, 
+              textTransform: 'uppercase', 
+              backgroundColor: 'var(--text-h)', 
+              color: 'var(--bg)' 
+            }}
           >
-            {loading ? 'Sharing...' : 'Share'}
+            {loading ? 'SHARING...' : 'SHARE'}
           </Button>
         </Flex>
 
         {message && (
           <Callout.Root 
-            color={message.type === 'success' ? 'green' : 'red'} 
+            color="gray" 
             size="1" 
             mb="4"
+            style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: message.type === 'success' ? 'var(--bg)' : 'var(--bg)' }}
           >
-            <Callout.Icon>
+            <Callout.Icon style={{ color: 'var(--text-h)' }}>
               {message.type === 'success' ? <CheckCircledIcon /> : <CrossCircledIcon />}
             </Callout.Icon>
-            <Callout.Text>{message.text}</Callout.Text>
+            <Callout.Text style={{ fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-h)' }}>{message.text}</Callout.Text>
           </Callout.Root>
         )}
 
         {shares.length > 0 && (
           <>
-            <Separator size="4" mb="3" />
-            <Heading size="2" color="gray" mb="3">Shared with</Heading>
+            <Separator size="4" mb="4" style={{ backgroundColor: 'var(--border)' }} />
+            <Heading size="2" color="gray" mb="3" style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Shared with</Heading>
             <Flex direction="column" gap="2">
               {shares.map(share => (
                 <Flex key={share.share_id} justify="between" align="center" gap="3"
                   style={{ 
-                    padding: '8px 12px', 
-                    borderRadius: '8px',
-                    backgroundColor: 'var(--gray-a2)'
+                    padding: '12px', 
+                    borderRadius: 0,
+                    borderBottom: '1px solid var(--border-subtle)',
+                    backgroundColor: 'transparent'
                   }}
                 >
-                  <Text size="2" style={{ flexGrow: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <Text size="2" style={{ flexGrow: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
                     {share.email}
                   </Text>
                   <Select.Root 
                     value={share.permission}
                     onValueChange={(val) => handleChangePermission(share.share_id, val, share.email)}
                   >
-                    <Select.Trigger style={{ cursor: 'pointer', minWidth: '105px' }} />
-                    <Select.Content>
-                      <Select.Item value="read" style={{ cursor: 'pointer' }}>Read Only</Select.Item>
-                      <Select.Item value="edit" style={{ cursor: 'pointer' }}>Can Edit</Select.Item>
+                    <Select.Trigger style={{ cursor: 'pointer', minWidth: '105px', borderRadius: 0, border: '1px solid var(--border)' }} />
+                    <Select.Content style={{ borderRadius: 0, border: '1px solid var(--border)' }}>
+                      <Select.Item value="read" style={{ cursor: 'pointer' }}>READ ONLY</Select.Item>
+                      <Select.Item value="edit" style={{ cursor: 'pointer' }}>CAN EDIT</Select.Item>
                     </Select.Content>
                   </Select.Root>
                   <IconButton 
-                    color="red" 
-                    variant="soft" 
+                    color="gray" 
+                    variant="ghost" 
                     size="1"
                     onClick={() => handleRevoke(share.share_id)}
-                    style={{ cursor: 'pointer' }}
+                    style={{ cursor: 'pointer', color: 'var(--text-h)', borderRadius: 0 }}
                     title="Revoke access"
                   >
                     <TrashIcon />
@@ -174,18 +188,18 @@ export default function ShareNoteDialog({ open, onOpenChange, noteId, noteColor 
         )}
 
         {fetchingShares && (
-          <Text size="2" color="gray" align="center">Loading shares...</Text>
+          <Text size="2" color="gray" align="center" style={{ fontWeight: 600, textTransform: 'uppercase' }}>Loading shares...</Text>
         )}
 
         {!fetchingShares && shares.length === 0 && (
-          <Text size="2" color="gray" align="center" mt="2">
+          <Text size="2" color="gray" align="center" mt="2" style={{ fontWeight: 600, textTransform: 'uppercase', opacity: 0.4 }}>
             Not shared with anyone yet.
           </Text>
         )}
 
         <Flex justify="end" mt="5">
           <Dialog.Close>
-            <Button variant="soft" color="gray" style={{ cursor: 'pointer' }}>Close</Button>
+            <Button variant="outline" color="gray" style={{ cursor: 'pointer', borderRadius: 0, fontWeight: 800, textTransform: 'uppercase', borderColor: 'var(--border)', color: 'var(--text-h)' }}>Close</Button>
           </Dialog.Close>
         </Flex>
       </Dialog.Content>

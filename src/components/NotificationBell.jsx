@@ -77,8 +77,8 @@ export default function NotificationBell({ session, onSelectNote }) {
     <Popover.Root>
       <Popover.Trigger>
         <Box style={{ position: 'relative', cursor: 'pointer' }}>
-          <IconButton variant="ghost" color="gray" size="2">
-            <BellIcon width="18" height="18" />
+          <IconButton variant="ghost" color="gray" size="2" style={{ color: 'var(--text-h)' }}>
+            <BellIcon width="20" height="20" />
           </IconButton>
           {unreadCount > 0 && (
             <Box
@@ -86,17 +86,19 @@ export default function NotificationBell({ session, onSelectNote }) {
                 position: 'absolute',
                 top: '-2px',
                 right: '-2px',
-                backgroundColor: 'var(--red-9)',
-                color: 'white',
-                borderRadius: '50%',
-                width: '16px',
+                backgroundColor: 'var(--text-h)',
+                color: 'var(--bg)',
+                borderRadius: 0,
+                minWidth: '16px',
                 height: '16px',
+                padding: '0 4px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '10px',
-                fontWeight: 'bold',
+                fontWeight: '900',
                 pointerEvents: 'none',
+                border: '1px solid var(--bg)'
               }}
             >
               {unreadCount > 9 ? '9+' : unreadCount}
@@ -104,23 +106,23 @@ export default function NotificationBell({ session, onSelectNote }) {
           )}
         </Box>
       </Popover.Trigger>
-      <Popover.Content width="320px" style={{ padding: '0' }}>
+      <Popover.Content width="340px" style={{ padding: '0', borderRadius: 0, border: '1.5px solid var(--border)' }}>
         <Flex direction="column">
           <Flex justify="between" align="center" p="3">
-            <Heading size="3">Notifications</Heading>
+            <Heading size="3" style={{ fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-h)' }}>Notifications</Heading>
             {unreadCount > 0 && (
-              <Button variant="ghost" size="1" color="cyan" onClick={markAllAsRead}>
+              <Button variant="ghost" size="1" color="gray" onClick={markAllAsRead} style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-h)', cursor: 'pointer' }}>
                 Mark all as read
               </Button>
             )}
           </Flex>
-          <Separator size="4" />
+          <Separator size="4" style={{ backgroundColor: 'var(--border)' }} />
           <ScrollArea style={{ maxHeight: '400px' }}>
             <Box p="2">
               {notifications.length === 0 ? (
                 <Flex direction="column" align="center" py="8" gap="2">
-                  <EnvelopeOpenIcon width="24" height="24" style={{ color: 'var(--gray-7)' }} />
-                  <Text size="2" color="gray">No notifications yet</Text>
+                  <EnvelopeOpenIcon width="24" height="24" style={{ color: 'var(--text-h)', opacity: 0.2 }} />
+                  <Text size="2" style={{ color: 'var(--text)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.4 }}>Inbox Empty</Text>
                 </Flex>
               ) : (
                 notifications.map(notif => {
@@ -130,29 +132,31 @@ export default function NotificationBell({ session, onSelectNote }) {
                       key={notif.id}
                       onClick={() => handleNotificationClick(notif)}
                       style={{
-                        padding: '12px',
-                        borderRadius: '8px',
+                        padding: '16px',
+                        borderRadius: 0,
                         cursor: 'pointer',
-                        backgroundColor: notif.is_read ? 'transparent' : 'var(--cyan-a2)',
+                        backgroundColor: notif.is_read ? 'transparent' : 'var(--code-bg)',
+                        borderLeft: notif.is_read ? 'none' : '4px solid var(--text-h)',
                         transition: 'background-color 0.2s',
-                        marginBottom: '4px'
+                        marginBottom: '4px',
+                        borderBottom: '1px solid var(--border-subtle)'
                       }}
                       className="notif-item"
                     >
                       <Flex gap="3" align="start">
                         <Box mt="1">
                           {isUpdate ? (
-                            <LockClosedIcon style={{ color: 'var(--amber-9)' }} />
+                            <LockClosedIcon style={{ color: 'var(--text-h)' }} />
                           ) : (
-                            <Share2Icon style={{ color: 'var(--cyan-9)' }} />
+                            <Share2Icon style={{ color: 'var(--text-h)' }} />
                           )}
                         </Box>
                         <Box>
-                          <Text as="div" size="2" weight="bold" mb="1">
+                          <Text as="div" size="2" style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.02em', mb: '1', color: 'var(--text-h)' }}>
                             {isUpdate ? 'Permission Updated' : 'Note Shared'}
                           </Text>
-                          <Text as="div" size="2" color="gray">
-                            <Text weight="bold" color={isUpdate ? 'amber' : 'cyan'}>
+                          <Text as="div" size="2" style={{ color: 'var(--text)', lineHeight: 1.4 }}>
+                            <Text weight="bold" style={{ color: 'var(--text-h)' }}>
                               {notif.content.shared_by_email}
                             </Text> 
                             {isUpdate 
@@ -160,7 +164,7 @@ export default function NotificationBell({ session, onSelectNote }) {
                               : ` shared a note with you: "${notif.content.note_title}"`
                             }
                           </Text>
-                          <Text as="div" size="1" color="gray" mt="1">
+                          <Text as="div" size="1" mt="2" style={{ color: 'var(--text)', fontWeight: 700, opacity: 0.5, textTransform: 'uppercase' }}>
                             {new Date(notif.created_at).toLocaleString()}
                           </Text>
                         </Box>

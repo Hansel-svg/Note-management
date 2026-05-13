@@ -8,28 +8,40 @@ export default function LabelFilterBar({
   setIsLabelManagerOpen
 }) {
   return (
-    <Flex gap="2" mb="4" wrap="wrap" align="center">
+    <Flex gap="2" mb="6" wrap="wrap" align="center">
       <Button 
-        variant="soft" 
+        variant="outline" 
         color="gray" 
         onClick={() => setIsLabelManagerOpen(true)}
-        style={{ cursor: 'pointer', borderRadius: '16px' }}
+        style={{ cursor: 'pointer', borderRadius: 0, fontWeight: 800, borderColor: 'var(--border)', color: 'var(--text-h)', textTransform: 'uppercase' }}
         size="1"
       >
-        <GearIcon /> Manage Labels
+        <GearIcon /> MANAGE LABELS
       </Button>
-      {labels.map(label => (
-        <Button 
-          key={label.id} 
-          variant={activeFilterLabels.includes(label.id) ? "solid" : "soft"} 
-          color="cyan" 
-          onClick={() => toggleFilterLabel(label.id)}
-          style={{ cursor: 'pointer', borderRadius: '16px' }}
-          size="1"
-        >
-          {label.name}
-        </Button>
-      ))}
+      {labels.map(label => {
+        const isActive = activeFilterLabels.includes(label.id);
+        return (
+          <Button 
+            key={label.id} 
+            variant={isActive ? "solid" : "outline"} 
+            color="gray" 
+            onClick={() => toggleFilterLabel(label.id)}
+            style={{ 
+              cursor: 'pointer', 
+              borderRadius: 0, 
+              fontWeight: 800, 
+              borderColor: 'var(--border)',
+              backgroundColor: isActive ? 'var(--text-h)' : 'transparent',
+              color: isActive ? 'var(--bg)' : 'var(--text-h)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
+            }}
+            size="1"
+          >
+            {label.name}
+          </Button>
+        );
+      })}
     </Flex>
   );
 }

@@ -663,11 +663,11 @@ export default function Home({ session }) {
 
       {unreadNotifications.length > 0 && (
         <Box mb="6">
-          <Callout.Root color="cyan" variant="soft">
+          <Callout.Root color="gray" variant="outline" style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent' }}>
             <Callout.Icon>
               <Share2Icon />
             </Callout.Icon>
-            <Callout.Text>
+            <Callout.Text style={{ fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-h)' }}>
               You have {unreadNotifications.length} new shared {unreadNotifications.length === 1 ? 'note' : 'notes'}. 
               Check the notification bell for details.
             </Callout.Text>
@@ -683,16 +683,16 @@ export default function Home({ session }) {
       />
 
       {notes.length === 0 ? (
-        <Text color="gray" size="3">No notes yet. Click "Add Note" to create one!</Text>
+        <Text size="3" style={{ fontWeight: 600, textTransform: 'uppercase', opacity: 0.4, color: 'var(--text)' }}>No notes yet. Click "Add Note" to create one!</Text>
       ) : filteredNotes.length === 0 ? (
-        <Text color="gray" size="3">
+        <Text size="3" style={{ fontWeight: 600, textTransform: 'uppercase', opacity: 0.4, color: 'var(--text)' }}>
           {debouncedSearchTerm ? `No notes found matching "${debouncedSearchTerm}".` : 'No notes match your selected labels.'}
         </Text>
       ) : (
         <>
           {myNotes.length > 0 && (
             <Box mb="8">
-              <Heading size="4" mb="4" color="gray" style={{ borderBottom: '1px solid var(--gray-5)', paddingBottom: '8px' }}>
+              <Heading size="4" mb="4" style={{ color: 'var(--text-h)', borderBottom: '1px solid var(--border)', paddingBottom: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 My Notes
               </Heading>
               {viewMode === 'grid' ? (
@@ -735,7 +735,7 @@ export default function Home({ session }) {
 
           {sharedWithMe.length > 0 && (
             <Box mb="6">
-              <Heading size="4" mb="4" color="gray" style={{ borderBottom: '1px solid var(--gray-5)', paddingBottom: '8px' }}>
+              <Heading size="4" mb="4" style={{ color: 'var(--text-h)', borderBottom: '1px solid var(--border)', paddingBottom: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Shared with Me
               </Heading>
               {viewMode === 'grid' ? (

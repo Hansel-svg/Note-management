@@ -62,9 +62,9 @@ export function ThemeProvider({ children }) {
     <ThemeContext.Provider value={contextValue}>
       <Theme 
         appearance={theme} 
-        accentColor="cyan" 
+        accentColor="gray" 
         grayColor="slate" 
-        radius="large"
+        radius="none"
         style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', width: '100%' }}
       >
         {children}

@@ -7,17 +7,17 @@ export default function ShareBadge({ permission }) {
       align="center" 
       gap="1" 
       style={{ 
-        backgroundColor: 'var(--cyan-3)', 
-        color: 'var(--cyan-11)', 
-        padding: '2px 8px', 
-        borderRadius: '12px',
+        backgroundColor: 'var(--text-h)', 
+        color: 'var(--bg)', 
+        padding: '2px 10px', 
+        borderRadius: 0,
         display: 'inline-flex',
         width: 'fit-content'
       }}
     >
-      <Share2Icon width="10" height="10" />
-      <Text size="1" style={{ fontWeight: 500 }}>
-        {permission === 'edit' ? 'Shared (Edit)' : 'Shared (Read)'}
+      <Share2Icon width="12" height="12" />
+      <Text size="1" style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        {permission === 'edit' ? 'SHARED / EDIT' : 'SHARED / READ'}
       </Text>
     </Flex>
   );

@@ -14,21 +14,41 @@ export default function LabelManagerDialog({
 }) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Content maxWidth="450px" style={{ backgroundColor: noteColor === 'surface' ? undefined : `var(--${noteColor}-2)` }}>
-        <Dialog.Title>Manage Labels</Dialog.Title>
-        <Dialog.Description size="2" color="gray" mb="4">
+      <Dialog.Content 
+        maxWidth="450px" 
+        style={{ 
+          backgroundColor: 'var(--bg)', 
+          borderRadius: 0, 
+          border: '1.5px solid var(--border)' 
+        }}
+      >
+        <Dialog.Title style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Manage Labels</Dialog.Title>
+        <Dialog.Description size="2" color="gray" mb="5" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.02em', opacity: 0.6 }}>
           Create, rename, or delete labels.
         </Dialog.Description>
         
         <Flex gap="2" mb="5">
           <TextField.Root 
-            placeholder="New label name..." 
+            placeholder="NEW LABEL NAME..." 
             value={newLabelName}
             onChange={(e) => setNewLabelName(e.target.value)}
-            style={{ flexGrow: 1 }}
+            style={{ flexGrow: 1, borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent' }}
             onKeyDown={(e) => { if (e.key === 'Enter') onCreateLabel(); }}
           />
-          <Button onClick={onCreateLabel} color="cyan" style={{ cursor: 'pointer' }}>Add</Button>
+          <Button 
+            onClick={onCreateLabel} 
+            color="gray" 
+            style={{ 
+              cursor: 'pointer', 
+              borderRadius: 0, 
+              fontWeight: 800, 
+              textTransform: 'uppercase', 
+              backgroundColor: 'var(--text-h)', 
+              color: 'var(--bg)' 
+            }}
+          >
+            ADD
+          </Button>
         </Flex>
 
         <Flex direction="column" gap="3">
@@ -49,21 +69,26 @@ export default function LabelManagerDialog({
                     e.target.blur();
                   }
                 }}
-                style={{ flexGrow: 1 }}
+                style={{ flexGrow: 1, borderRadius: 0, border: '1px solid var(--border-subtle)', backgroundColor: 'transparent' }}
               />
-              <IconButton color="red" variant="soft" onClick={() => onDeleteLabel(label.id)} style={{ cursor: 'pointer' }}>
+              <IconButton 
+                color="gray" 
+                variant="ghost" 
+                onClick={() => onDeleteLabel(label.id)} 
+                style={{ cursor: 'pointer', borderRadius: 0, color: 'var(--text-h)' }}
+              >
                 <TrashIcon />
               </IconButton>
             </Flex>
           ))}
           {labels.length === 0 && (
-            <Text size="2" color="gray" align="center">No labels created yet.</Text>
+            <Text size="2" color="gray" align="center" style={{ fontWeight: 600, textTransform: 'uppercase', opacity: 0.4 }}>No labels created yet.</Text>
           )}
         </Flex>
         
-        <Flex justify="end" mt="5">
+        <Flex justify="end" mt="6">
           <Dialog.Close>
-            <Button variant="soft" color="gray" style={{ cursor: 'pointer' }}>Close</Button>
+            <Button variant="outline" color="gray" style={{ cursor: 'pointer', borderRadius: 0, fontWeight: 800, textTransform: 'uppercase', borderColor: 'var(--border)', color: 'var(--text-h)' }}>Close</Button>
           </Dialog.Close>
         </Flex>
       </Dialog.Content>

@@ -39,65 +39,81 @@ export default function UpdatePassword() {
   };
 
   return (
-    <Flex justify="center" align="center" style={{ minHeight: "100vh" }}>
+    <Flex justify="center" align="center" style={{ minHeight: "100vh", backgroundColor: 'var(--bg)' }}>
       <Container size="1" py="9" px="4" style={{ maxWidth: '400px' }}>
-        <Card size="4" variant="surface">
+        <Card size="4" variant="surface" style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'var(--bg)' }}>
           <form onSubmit={handleUpdate}>
             <Flex direction="column" gap="5">
               <Box style={{ textAlign: "center" }} mb="4">
-                <Heading size="7" mb="2" style={{ background: 'linear-gradient(to right, var(--cyan-9), var(--blue-9))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                  New Password
+                <Heading size="8" mb="2" style={{ color: 'var(--text-h)', fontWeight: 800, letterSpacing: '-0.04em', textTransform: 'uppercase' }}>
+                  NEW PASSWORD
                 </Heading>
-                <Text size="3" color="gray">
+                <Text size="2" style={{ color: 'var(--text)', fontWeight: 600, textTransform: 'uppercase', opacity: 0.6 }}>
                   Enter your new password below
                 </Text>
               </Box>
 
               {errorMsg && (
-                <Callout.Root color="red" role="alert">
+                <Callout.Root color="gray" role="alert" style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent' }}>
                   <Callout.Icon><InfoCircledIcon /></Callout.Icon>
-                  <Callout.Text>{errorMsg}</Callout.Text>
+                  <Callout.Text style={{ fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-h)' }}>{errorMsg}</Callout.Text>
                 </Callout.Root>
               )}
 
               {message && (
-                <Callout.Root color="green" role="status">
+                <Callout.Root color="gray" role="status" style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent' }}>
                   <Callout.Icon><CheckCircledIcon /></Callout.Icon>
-                  <Callout.Text>{message}</Callout.Text>
+                  <Callout.Text style={{ fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-h)' }}>{message}</Callout.Text>
                 </Callout.Root>
               )}
 
               <Flex direction="column" gap="4">
                 <Box>
-                  <Text as="label" size="2" weight="bold" mb="2" style={{ display: 'block' }}>
-                    New Password
+                  <Text as="label" size="1" mb="2" style={{ display: 'block', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-h)' }}>
+                    NEW PASSWORD
                   </Text>
                   <TextField.Root 
                     type="password" 
-                    placeholder="Enter new password" 
+                    placeholder="ENTER NEW PASSWORD" 
                     required 
                     size="3"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent' }}
                   />
                 </Box>
                 
                 <Box>
-                  <Text as="label" size="2" weight="bold" mb="2" style={{ display: 'block' }}>
-                    Confirm Password
+                  <Text as="label" size="1" mb="2" style={{ display: 'block', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-h)' }}>
+                    CONFIRM PASSWORD
                   </Text>
                   <TextField.Root 
                     type="password" 
-                    placeholder="Confirm new password" 
+                    placeholder="CONFIRM NEW PASSWORD" 
                     required 
                     size="3"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
+                    style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent' }}
                   />
                 </Box>
 
-                <Button type="submit" size="3" mt="2" style={{ cursor: "pointer" }} disabled={isLoading}>
-                  {isLoading ? "Updating..." : "Update Password"}
+                <Button 
+                  type="submit" 
+                  size="3" 
+                  mt="2" 
+                  disabled={isLoading}
+                  style={{ 
+                    cursor: "pointer", 
+                    borderRadius: 0, 
+                    fontWeight: 900, 
+                    textTransform: 'uppercase', 
+                    letterSpacing: '0.1em', 
+                    backgroundColor: 'var(--text-h)', 
+                    color: 'var(--bg)' 
+                  }}
+                >
+                  {isLoading ? "UPDATING..." : "UPDATE PASSWORD"}
                 </Button>
               </Flex>
             </Flex>

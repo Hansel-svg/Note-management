@@ -29,56 +29,71 @@ export default function ForgotPassword() {
   };
 
   return (
-    <Flex justify="center" align="center" style={{ minHeight: "100vh" }}>
+    <Flex justify="center" align="center" style={{ minHeight: "100vh", backgroundColor: 'var(--bg)' }}>
       <Container size="1" py="9" px="4" style={{ maxWidth: '400px' }}>
-        <Card size="4" variant="surface">
+        <Card size="4" variant="surface" style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'var(--bg)' }}>
           <form onSubmit={handleReset}>
             <Flex direction="column" gap="5">
               <Box style={{ textAlign: "center" }} mb="4">
-                <Heading size="7" mb="2" style={{ background: 'linear-gradient(to right, var(--cyan-9), var(--blue-9))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                  Reset Password
+                <Heading size="8" mb="2" style={{ color: 'var(--text-h)', fontWeight: 800, letterSpacing: '-0.04em', textTransform: 'uppercase' }}>
+                  RESET PASSWORD
                 </Heading>
-                <Text size="3" color="gray">
+                <Text size="2" style={{ color: 'var(--text)', fontWeight: 600, textTransform: 'uppercase', opacity: 0.6 }}>
                   Enter your email to receive a reset link
                 </Text>
               </Box>
 
               {errorMsg && (
-                <Callout.Root color="red" role="alert">
+                <Callout.Root color="gray" role="alert" style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent' }}>
                   <Callout.Icon><InfoCircledIcon /></Callout.Icon>
-                  <Callout.Text>{errorMsg}</Callout.Text>
+                  <Callout.Text style={{ fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-h)' }}>{errorMsg}</Callout.Text>
                 </Callout.Root>
               )}
 
               {message && (
-                <Callout.Root color="green" role="status">
+                <Callout.Root color="gray" role="status" style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent' }}>
                   <Callout.Icon><CheckCircledIcon /></Callout.Icon>
-                  <Callout.Text>{message}</Callout.Text>
+                  <Callout.Text style={{ fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-h)' }}>{message}</Callout.Text>
                 </Callout.Root>
               )}
 
               <Flex direction="column" gap="4">
                 <Box>
-                  <Text as="label" size="2" weight="bold" mb="2" style={{ display: 'block' }}>
-                    Email
+                  <Text as="label" size="1" mb="2" style={{ display: 'block', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-h)' }}>
+                    EMAIL
                   </Text>
                   <TextField.Root 
                     type="email" 
-                    placeholder="Enter your email" 
+                    placeholder="ENTER YOUR EMAIL" 
                     required 
                     size="3"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent' }}
                   />
                 </Box>
 
-                <Button type="submit" size="3" mt="2" style={{ cursor: "pointer" }} disabled={isLoading}>
-                  {isLoading ? "Sending..." : "Send Reset Link"}
+                <Button 
+                  type="submit" 
+                  size="3" 
+                  mt="2" 
+                  disabled={isLoading}
+                  style={{ 
+                    cursor: "pointer", 
+                    borderRadius: 0, 
+                    fontWeight: 900, 
+                    textTransform: 'uppercase', 
+                    letterSpacing: '0.1em', 
+                    backgroundColor: 'var(--text-h)', 
+                    color: 'var(--bg)' 
+                  }}
+                >
+                  {isLoading ? "SENDING..." : "SEND RESET LINK"}
                 </Button>
               </Flex>
               
-              <Text size="2" align="center" mt="4">
-                Remember your password? <Link href="/signin" style={{ color: 'var(--cyan-10)', textDecoration: 'none', fontWeight: 'bold' }}>Sign in</Link>
+              <Text size="2" align="center" mt="4" style={{ fontWeight: 700, textTransform: 'uppercase', color: 'var(--text)' }}>
+                Remember your password? <Link href="/signin" style={{ color: 'var(--text-h)', textDecoration: 'underline', fontWeight: 800 }}>Sign in</Link>
               </Text>
             </Flex>
           </form>

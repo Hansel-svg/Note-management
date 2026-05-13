@@ -72,40 +72,41 @@ export default function Preferences({ session }) {
   return (
     <Container size="2" py="6" px="4">
       <Flex align="center" gap="4" mb="6">
-        <Button variant="ghost" color="gray" onClick={() => setLocation("/")} style={{ cursor: "pointer" }}>
+        <Button variant="outline" color="gray" onClick={() => setLocation("/")} style={{ cursor: "pointer", borderRadius: 0, fontWeight: 700, borderColor: 'var(--border)', color: 'var(--text-h)' }}>
           <ArrowLeftIcon />
-          Back
+          BACK
         </Button>
-        <Heading size="8" as="h1" style={{ background: 'linear-gradient(to right, var(--cyan-9), var(--blue-9))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: 0 }}>
-          User Preferences
+        <Heading size="8" as="h1" style={{ color: 'var(--text-h)', fontWeight: 800, letterSpacing: '-0.04em', margin: 0 }}>
+          USER PREFERENCES
         </Heading>
       </Flex>
 
-      <Card size="4" variant="surface">
+      <Card size="4" variant="surface" style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'var(--bg)' }}>
         <Flex direction="column" gap="6">
 
           <Box>
             <Flex justify="between" align="center">
               <Box>
-                <Text as="div" size="4" weight="bold" mb="1">Profile Picture</Text>
-                <Text as="div" size="2" color="gray">Upload a custom avatar</Text>
+                <Text as="div" size="4" style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.02em', color: 'var(--text-h)' }} mb="1">Profile Picture</Text>
+                <Text as="div" size="2" style={{ fontWeight: 600, textTransform: 'uppercase', opacity: 0.6, color: 'var(--text)' }}>Upload a custom avatar</Text>
               </Box>
               <Flex gap="4" align="center">
                 <Avatar
                   size="5"
                   src={avatarUrl}
                   fallback={session?.user?.email?.charAt(0).toUpperCase() || "?"}
-                  radius="full"
+                  radius="none"
+                  style={{ border: '1.5px solid var(--border)' }}
                 />
                 <Button 
-                  variant="soft" 
-                  color="cyan" 
+                  variant="solid" 
+                  color="gray" 
                   onClick={() => fileInputRef.current?.click()} 
                   disabled={uploading}
-                  style={{ cursor: "pointer" }}
+                  style={{ cursor: "pointer", borderRadius: 0, fontWeight: 800, textTransform: 'uppercase', backgroundColor: 'var(--text-h)', color: 'var(--bg)' }}
                 >
                   <UploadIcon />
-                  {uploading ? 'Uploading...' : 'Upload'}
+                  {uploading ? 'UPLOADING...' : 'UPLOAD'}
                 </Button>
                 <input
                   type="file"
@@ -122,14 +123,14 @@ export default function Preferences({ session }) {
           <Box>
             <Flex justify="between" align="center">
               <Box>
-                <Text as="div" size="4" weight="bold" mb="1">Appearance</Text>
-                <Text as="div" size="2" color="gray">Toggle between light and dark mode</Text>
+                <Text as="div" size="4" style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.02em', color: 'var(--text-h)' }} mb="1">Appearance</Text>
+                <Text as="div" size="2" style={{ fontWeight: 600, textTransform: 'uppercase', opacity: 0.6, color: 'var(--text)' }}>Toggle between light and dark mode</Text>
               </Box>
               <Switch 
                 size="3" 
                 checked={theme === "dark"} 
                 onCheckedChange={toggleTheme} 
-                style={{ cursor: "pointer" }}
+                style={{ cursor: "pointer", borderRadius: 0 }}
               />
             </Flex>
           </Box>
@@ -137,10 +138,10 @@ export default function Preferences({ session }) {
           <Box>
             <Flex justify="between" align="center" mb="3">
               <Box>
-                <Text as="div" size="4" weight="bold" mb="1">Note Font Size</Text>
-                <Text as="div" size="2" color="gray">Adjust the text size in your notes</Text>
+                <Text as="div" size="4" style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.02em', color: 'var(--text-h)' }} mb="1">Note Font Size</Text>
+                <Text as="div" size="2" style={{ fontWeight: 600, textTransform: 'uppercase', opacity: 0.6, color: 'var(--text)' }}>Adjust the text size in your notes</Text>
               </Box>
-              <Text size="3" weight="bold">{fontSize}px</Text>
+              <Text size="3" style={{ fontWeight: 900, color: 'var(--text-h)' }}>{fontSize}PX</Text>
             </Flex>
             <Slider 
               value={[fontSize]} 
@@ -160,10 +161,10 @@ export default function Preferences({ session }) {
           <Box>
             <Flex justify="between" align="center" mb="3">
               <Box>
-                <Text as="div" size="4" weight="bold" mb="1">Title Font Size</Text>
-                <Text as="div" size="2" color="gray">Adjust the text size for note titles</Text>
+                <Text as="div" size="4" style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.02em', color: 'var(--text-h)' }} mb="1">Title Font Size</Text>
+                <Text as="div" size="2" style={{ fontWeight: 600, textTransform: 'uppercase', opacity: 0.6, color: 'var(--text)' }}>Adjust the text size for note titles</Text>
               </Box>
-              <Text size="3" weight="bold">{titleFontSize}px</Text>
+              <Text size="3" style={{ fontWeight: 900, color: 'var(--text-h)' }}>{titleFontSize}PX</Text>
             </Flex>
             <Slider 
               value={[titleFontSize]} 
@@ -183,8 +184,8 @@ export default function Preferences({ session }) {
           <Box>
             <Flex justify="between" align="center">
               <Box>
-                <Text as="div" size="4" weight="bold" mb="1">Note Color</Text>
-                <Text as="div" size="2" color="gray">Choose the background color for all notes</Text>
+                <Text as="div" size="4" style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.02em', color: 'var(--text-h)' }} mb="1">Note Color</Text>
+                <Text as="div" size="2" style={{ fontWeight: 600, textTransform: 'uppercase', opacity: 0.6, color: 'var(--text)' }}>Choose the background color for all notes</Text>
               </Box>
               <Select.Root value={noteColor} onValueChange={async (val) => {
                 updateNoteColor(val);
@@ -192,14 +193,14 @@ export default function Preferences({ session }) {
                   await supabase.from('profiles').update({ default_note_color: val }).eq('id', session.user.id);
                 }
               }}>
-                <Select.Trigger style={{ width: "120px", cursor: "pointer" }} />
-                <Select.Content>
+                <Select.Trigger style={{ width: "120px", cursor: "pointer", borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent', color: 'var(--text-h)' }} />
+                <Select.Content style={{ borderRadius: 0, border: '1px solid var(--border)' }}>
                   <Select.Group>
-                    <Select.Item value="surface" style={{ cursor: "pointer" }}>Default</Select.Item>
-                    <Select.Item value="yellow" style={{ cursor: "pointer" }}>Yellow</Select.Item>
-                    <Select.Item value="blue" style={{ cursor: "pointer" }}>Blue</Select.Item>
-                    <Select.Item value="green" style={{ cursor: "pointer" }}>Green</Select.Item>
-                    <Select.Item value="pink" style={{ cursor: "pointer" }}>Pink</Select.Item>
+                    <Select.Item value="surface" style={{ cursor: "pointer" }}>DEFAULT</Select.Item>
+                    <Select.Item value="yellow" style={{ cursor: "pointer" }}>YELLOW</Select.Item>
+                    <Select.Item value="blue" style={{ cursor: "pointer" }}>BLUE</Select.Item>
+                    <Select.Item value="green" style={{ cursor: "pointer" }}>GREEN</Select.Item>
+                    <Select.Item value="pink" style={{ cursor: "pointer" }}>PINK</Select.Item>
                   </Select.Group>
                 </Select.Content>
               </Select.Root>

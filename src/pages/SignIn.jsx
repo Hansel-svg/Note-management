@@ -25,26 +25,26 @@ function SignIn() {
     }
 
     return (
-        <Flex justify="center" align="center" style={{ minHeight: "100vh" }}>
+        <Flex justify="center" align="center" style={{ minHeight: "100vh", backgroundColor: 'var(--bg)' }}>
             <Container size="1" py="9" px="4" style={{ maxWidth: '400px' }}>
-                <Card size="4" variant="surface">
+                <Card size="4" variant="surface" style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'var(--bg)' }}>
                     <form onSubmit={signIn}>
                         <Flex direction="column" gap="5">
                             <Box style={{ textAlign: "center" }} mb="4">
-                                <Heading size="7" mb="2" style={{ background: 'linear-gradient(to right, var(--cyan-9), var(--blue-9))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                                    Welcome Back
+                                <Heading size="8" mb="2" style={{ color: 'var(--text-h)', fontWeight: 800, letterSpacing: '-0.04em', textTransform: 'uppercase' }}>
+                                    WELCOME BACK
                                 </Heading>
-                                <Text size="3" color="gray">
+                                <Text size="2" style={{ color: 'var(--text)', fontWeight: 600, textTransform: 'uppercase', opacity: 0.6 }}>
                                     Sign in to your account to continue
                                 </Text>
                             </Box>
 
                             {signInError && (
-                                <Callout.Root color="red" role="alert">
+                                <Callout.Root color="gray" role="alert" style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent' }}>
                                     <Callout.Icon>
                                         <InfoCircledIcon />
                                     </Callout.Icon>
-                                    <Callout.Text>
+                                    <Callout.Text style={{ fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-h)' }}>
                                         {signInError}
                                     </Callout.Text>
                                 </Callout.Root>
@@ -52,45 +52,61 @@ function SignIn() {
 
                             <Flex direction="column" gap="4">
                                 <Box>
-                                    <Text as="label" size="2" weight="bold" mb="2" style={{ display: 'block' }}>
-                                        Email
+                                    <Text as="label" size="1" mb="2" style={{ display: 'block', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-h)' }}>
+                                        EMAIL
                                     </Text>
                                     <TextField.Root
                                         type="email"
-                                        placeholder="Enter your email"
+                                        placeholder="ENTER YOUR EMAIL"
                                         required
                                         size="3"
                                         value={email}
                                         onChange={e => setEmail(e.target.value)}
+                                        style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent' }}
                                     />
                                 </Box>
 
                                 <Box>
                                     <Flex justify="between" mb="2">
-                                        <Text as="label" size="2" weight="bold" style={{ display: 'block' }}>
-                                            Password
+                                        <Text as="label" size="1" style={{ display: 'block', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-h)' }}>
+                                            PASSWORD
                                         </Text>
-                                        <Link href="/forgot-password" style={{ color: 'var(--cyan-10)', textDecoration: 'none', fontSize: 'var(--font-size-2)' }}>
+                                        <Link href="/forgot-password" style={{ color: 'var(--text-h)', textDecoration: 'underline', fontSize: 'var(--font-size-1)', fontWeight: 700, textTransform: 'uppercase' }}>
                                             Forgot password?
                                         </Link>
                                     </Flex>
                                     <TextField.Root
                                         type="password"
-                                        placeholder="Enter your password"
+                                        placeholder="ENTER YOUR PASSWORD"
                                         required
                                         size="3"
                                         value={password}
                                         onChange={e => setPassword(e.target.value)}
+                                        style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent' }}
                                     />
                                 </Box>
 
-                                <Button type="submit" size="3" mt="2" style={{ cursor: "pointer" }} disabled={isLoading}>
-                                    {isLoading ? "Signing in..." : "Sign In"}
+                                <Button 
+                                    type="submit" 
+                                    size="3" 
+                                    mt="2" 
+                                    disabled={isLoading}
+                                    style={{ 
+                                        cursor: "pointer", 
+                                        borderRadius: 0, 
+                                        fontWeight: 900, 
+                                        textTransform: 'uppercase', 
+                                        letterSpacing: '0.1em', 
+                                        backgroundColor: 'var(--text-h)', 
+                                        color: 'var(--bg)' 
+                                    }}
+                                >
+                                    {isLoading ? "SIGNING IN..." : "SIGN IN"}
                                 </Button>
                             </Flex>
 
-                            <Text size="2" align="center" mt="4">
-                                Don't have an account? <Link href="/signup" style={{ color: 'var(--cyan-10)', textDecoration: 'none', fontWeight: 'bold' }}>Sign up</Link>
+                            <Text size="2" align="center" mt="4" style={{ fontWeight: 700, textTransform: 'uppercase', color: 'var(--text)' }}>
+                                Don't have an account? <Link href="/signup" style={{ color: 'var(--text-h)', textDecoration: 'underline', fontWeight: 800 }}>Sign up</Link>
                             </Text>
                         </Flex>
                     </form>

@@ -20,12 +20,12 @@ export default function DashboardHeader({
     <>
       {!isVerified && (
         <Box mb="6">
-          <Callout.Root color="amber" variant="surface">
+          <Callout.Root color="gray" variant="outline" style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent' }}>
             <Callout.Icon>
               <InfoCircledIcon />
             </Callout.Icon>
-            <Callout.Text>
-              Your account is not verified. Please verify your email to complete the registration process.
+            <Callout.Text style={{ fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-h)' }}>
+              YOUR ACCOUNT IS NOT VERIFIED. PLEASE VERIFY YOUR EMAIL.
               <Button 
                 variant="ghost" 
                 size="1" 
@@ -35,11 +35,11 @@ export default function DashboardHeader({
                     type: 'signup',
                     email: session.user.email
                   });
-                  if (!error) alert('Verification email resent!');
+                  if (!error) alert('VERIFICATION EMAIL RESENT!');
                 }}
-                style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                style={{ cursor: 'pointer', textDecoration: 'underline', fontWeight: 900, textTransform: 'uppercase' }}
               >
-                Resend email
+                RESEND EMAIL
               </Button>
             </Callout.Text>
           </Callout.Root>
@@ -47,8 +47,8 @@ export default function DashboardHeader({
       )}
 
       <Flex justify="between" align="center" mb="6">
-        <Heading size="8" as="h1" style={{ background: 'linear-gradient(to right, var(--cyan-9), var(--blue-9))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          My Notes
+        <Heading size="8" as="h1" style={{ color: 'var(--text-h)', fontWeight: 800, letterSpacing: '-0.04em', textTransform: 'uppercase' }}>
+          MY NOTES
         </Heading>
         <Flex gap="3" align="center">
           <NotificationBell session={session} onSelectNote={onSelectNote} />
@@ -56,46 +56,47 @@ export default function DashboardHeader({
             size="3"
             src={avatarUrl}
             fallback={session?.user?.email?.charAt(0).toUpperCase() || "?"}
-            radius="full"
+            radius="none"
+            style={{ border: '1.5px solid var(--border)' }}
           />
-          <Button variant="soft" color="gray" onClick={() => setLocation('/preferences')} style={{ cursor: "pointer" }}>
+          <Button variant="outline" color="gray" onClick={() => setLocation('/preferences')} style={{ cursor: "pointer", borderRadius: 0, fontWeight: 800, borderColor: 'var(--border)', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-h)' }}>
             <GearIcon />
-            Preferences
+            PREFERENCES
           </Button>
-          <Button variant="soft" color="cyan" onClick={() => setLocation('/forgot-password')} style={{ cursor: "pointer" }}>
+          <Button variant="outline" color="gray" onClick={() => setLocation('/forgot-password')} style={{ cursor: "pointer", borderRadius: 0, fontWeight: 800, borderColor: 'var(--border)', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-h)' }}>
             <LockClosedIcon />
-            Reset Password
+            RESET PASSWORD
           </Button>
-          <Button variant="surface" color="gray" onClick={handleSignOut} style={{ cursor: "pointer" }}>
+          <Button variant="solid" color="gray" onClick={handleSignOut} style={{ cursor: "pointer", borderRadius: 0, fontWeight: 900, backgroundColor: 'var(--text-h)', color: 'var(--bg)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
             <ExitIcon />
-            Sign Out
+            SIGN OUT
           </Button>
         </Flex>
       </Flex>
 
       <Flex justify="between" align="center" mb="4" wrap="wrap" gap="4">
         <Flex gap="3" align="center">
-          <Heading size="6">Recent Notes</Heading>
-          <Button onClick={openCreateDialog} color="cyan" variant="solid" style={{ cursor: 'pointer' }}>
-            <PlusIcon /> Add Note
+          <Heading size="6" style={{ fontWeight: 800, letterSpacing: '-0.02em', textTransform: 'uppercase', color: 'var(--text-h)' }}>RECENT NOTES</Heading>
+          <Button onClick={openCreateDialog} color="gray" variant="solid" style={{ cursor: 'pointer', borderRadius: 0, fontWeight: 900, backgroundColor: 'var(--text-h)', color: 'var(--bg)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            <PlusIcon /> ADD NOTE
           </Button>
         </Flex>
         <Flex gap="3" align="center" style={{ flexGrow: 1, justifyContent: 'flex-end' }}>
           <TextField.Root 
             id="search-input"
-            placeholder="Search notes or labels... (/)" 
+            placeholder="SEARCH NOTES OR LABELS... (/)" 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: '100%', maxWidth: '300px' }}
+            style={{ width: '100%', maxWidth: '300px', borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent' }}
             autoComplete="off"
           >
             <TextField.Slot>
-              <MagnifyingGlassIcon height="16" width="16" />
+              <MagnifyingGlassIcon height="16" width="16" color="var(--text-h)" />
             </TextField.Slot>
             {searchTerm && (
               <TextField.Slot>
                 <IconButton 
-                  size="1" 
+                   size="1" 
                   variant="ghost" 
                   color="gray" 
                   onClick={() => setSearchTerm('')}
@@ -108,18 +109,18 @@ export default function DashboardHeader({
           </TextField.Root>
           <Flex gap="2">
             <IconButton 
-              variant={viewMode === 'grid' ? 'solid' : 'soft'} 
-              color="cyan" 
+              variant={viewMode === 'grid' ? 'solid' : 'outline'} 
+              color="gray" 
               onClick={() => setViewMode('grid')}
-              style={{ cursor: 'pointer' }}
+              style={{ cursor: 'pointer', borderRadius: 0, borderColor: 'var(--border)' }}
             >
               <GridIcon />
             </IconButton>
             <IconButton 
-              variant={viewMode === 'list' ? 'solid' : 'soft'} 
-              color="cyan" 
+              variant={viewMode === 'list' ? 'solid' : 'outline'} 
+              color="gray" 
               onClick={() => setViewMode('list')}
-              style={{ cursor: 'pointer' }}
+              style={{ cursor: 'pointer', borderRadius: 0, borderColor: 'var(--border)' }}
             >
               <ListBulletIcon />
             </IconButton>

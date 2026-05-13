@@ -1,54 +1,98 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+:root, .light, .light-theme, .radix-themes.light-theme {
+  --text: #222222;
+  --text-h: #000000;
+  --bg: #ffffff;
+  --border: #000000;
+  --border-subtle: #cccccc;
+  --code-bg: #f5f5f5;
+  --accent: #000000;
+  --accent-bg: #000000;
+  --accent-text: #ffffff;
+  --accent-border: #000000;
+  --shadow: none;
+  --card-bg: #ffffff;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
+  font: 16px/1.6 var(--sans);
+  letter-spacing: -0.01em;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  color: var(--text) !important;
+  background-color: var(--bg) !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+.dark, .dark-theme, .radix-themes.dark-theme {
+  --text: #a0a0a0;
+  --text-h: #ffffff;
+  --bg: #000000;
+  --border: #ffffff;
+  --border-subtle: #222222;
+  --code-bg: #111111;
+  --accent: #ffffff;
+  --accent-bg: #ffffff;
+  --accent-text: #000000;
+  --accent-border: #ffffff;
+  --card-bg: #000000;
+  
+  color: var(--text) !important;
+  background-color: var(--bg) !important;
+}
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+/* Force monochrome on all Radix components */
+.rt-Text, .rt-Heading, .rt-Link, .rt-IconButton, .rt-TextFieldInput, .rt-SelectTrigger {
+  color: inherit !important;
+}
+
+.rt-IconButton.rt-variant-solid {
+  background-color: var(--text-h) !important;
+  color: var(--bg) !important;
+}
+
+.rt-IconButton.rt-variant-outline, .rt-IconButton.rt-variant-ghost {
+  color: var(--text-h) !important;
+}
+
+.rt-IconButton svg {
+  color: inherit !important;
+  fill: currentColor !important;
+}
+
+/* Button variant overrides for strict monochrome */
+.rt-Button.rt-variant-solid {
+  background-color: var(--text-h) !important;
+  color: var(--bg) !important;
+}
+
+.rt-Button.rt-variant-outline {
+  background-color: transparent !important;
+  color: var(--text-h) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.rt-Button.rt-variant-ghost {
+  color: var(--text-h) !important;
+}
+
+/* Specific overrides for Radix UI stubborn colors */
+[data-accent-color] {
+  --accent-9: var(--text-h) !important;
+  --accent-10: var(--text-h) !important;
+  --accent-track: var(--border-subtle) !important;
+  --gray-2: var(--bg) !important;
+  --gray-3: var(--border-subtle) !important;
+  --gray-12: var(--text-h) !important;
+  --gray-11: var(--text) !important;
 }
 
 body {
   margin: 0;
+  color: var(--text) !important;
+  background-color: var(--bg) !important;
 }
 
 #root {
@@ -61,12 +105,15 @@ body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  background-color: var(--bg) !important;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
+h1, h2, h3, h4, h5, h6, .rt-Heading {
+  font-family: var(--heading) !important;
+  font-weight: 900 !important;
+  color: var(--text-h) !important;
+  text-transform: uppercase !important;
+  letter-spacing: -0.04em !important;
 }
 
 h1 {
@@ -78,25 +125,17 @@ h1 {
     margin: 20px 0;
   }
 }
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
+
+p, .rt-Text {
+  color: var(--text) !important;
 }
 
 code,
 .counter {
   font-family: var(--mono);
   display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+  border-radius: 0;
+  color: var(--text-h) !important;
 }
 
 code {
@@ -104,4 +143,39 @@ code {
   line-height: 135%;
   padding: 4px 8px;
   background: var(--code-bg);
+}
+
+.notion-title-input,
+.notion-content-input {
+  all: unset;
+  display: block;
+  width: 100%;
+  background: transparent !important;
+  color: var(--text-h) !important;
+  font-family: var(--heading);
+  box-sizing: border-box;
+}
+
+.notion-title-input {
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.04em;
+  font-size: 2.5rem;
+}
+
+.notion-title-input::placeholder {
+  color: var(--text);
+  opacity: 0.2;
+}
+
+.notion-content-input {
+  font-family: var(--sans);
+  font-weight: 500;
+  line-height: 1.8;
+  font-size: 1.1rem;
+}
+
+.notion-content-input::placeholder {
+  color: var(--text);
+  opacity: 0.3;
 }
