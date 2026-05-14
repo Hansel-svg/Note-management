@@ -767,9 +767,6 @@ export default function Home({ session }) {
             <>
               {myNotes.length > 0 && (
                 <Box mb="8">
-                  <Heading size="4" mb="4" style={{ color: 'var(--text-h)', borderBottom: '1px solid var(--border)', paddingBottom: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    My Notes
-                  </Heading>
                   {viewMode === 'grid' ? (
                     <div className="notes-grid">
                       {myNotes.map(note => (

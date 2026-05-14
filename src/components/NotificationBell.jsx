@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/SupaBaseClient";
 import { 
   Box, IconButton, Text, Popover, Flex, 
-  Separator, Button, ScrollArea, Heading 
+  Separator, Button, ScrollArea, Heading, Dialog, VisuallyHidden 
 } from "@radix-ui/themes";
-import { BellIcon, EnvelopeOpenIcon, Share2Icon, LockClosedIcon } from "@radix-ui/react-icons";
+import { BellIcon, EnvelopeOpenIcon, Share2Icon, LockClosedIcon, Cross2Icon } from "@radix-ui/react-icons";
 
 export default function NotificationBell({ session, onSelectNote, label }) {
   const [notifications, setNotifications] = useState([]);
@@ -74,114 +74,172 @@ export default function NotificationBell({ session, onSelectNote, label }) {
     }
   };
 
-  return (
-    <Popover.Root>
-      <Popover.Trigger>
-        <Box style={{ cursor: 'pointer', width: label ? '100%' : 'auto' }}>
-          <Flex align="center" gap="2" style={{ position: 'relative' }}>
-            <IconButton variant="ghost" color="gray" size="2" style={{ color: 'var(--text-h)', pointerEvents: 'none' }}>
-              <BellIcon width="20" height="20" />
-            </IconButton>
-            {label && <Text size="2" style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-h)' }}>{label}</Text>}
-            {unreadCount > 0 && (
-              <Box
-                style={{
-                  position: 'absolute',
-                  top: '-2px',
-                  left: '12px',
-                  backgroundColor: 'var(--text-h)',
-                  color: 'var(--bg)',
-                  borderRadius: 0,
-                  minWidth: '16px',
-                  height: '16px',
-                  padding: '0 4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '10px',
-                  fontWeight: '900',
-                  pointerEvents: 'none',
-                  border: '1px solid var(--bg)',
-                  zIndex: 1
-                }}
-              >
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </Box>
-            )}
-          </Flex>
-        </Box>
-      </Popover.Trigger>
-      <Popover.Content width="340px" style={{ padding: '0', borderRadius: 0, border: '1.5px solid var(--border)' }}>
-        <Flex direction="column">
-          <Flex justify="between" align="center" p="3">
-            <Heading size="3" style={{ fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-h)' }}>Notifications</Heading>
-            {unreadCount > 0 && (
-              <Button variant="ghost" size="1" color="gray" onClick={markAllAsRead} style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-h)', cursor: 'pointer' }}>
-                Mark all as read
-              </Button>
-            )}
-          </Flex>
-          <Separator size="4" style={{ backgroundColor: 'var(--border)' }} />
-          <ScrollArea style={{ maxHeight: '400px' }}>
-            <Box p="2">
-              {notifications.length === 0 ? (
-                <Flex direction="column" align="center" py="8" gap="2">
-                  <EnvelopeOpenIcon width="24" height="24" style={{ color: 'var(--text-h)', opacity: 0.2 }} />
-                  <Text size="2" style={{ color: 'var(--text)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.4 }}>Inbox Empty</Text>
-                </Flex>
-              ) : (
-                notifications.map(notif => {
-                  const isUpdate = notif.type === 'permission_updated';
-                  return (
-                    <Box
-                      key={notif.id}
-                      onClick={() => handleNotificationClick(notif)}
-                      style={{
-                        padding: '16px',
-                        borderRadius: 0,
-                        cursor: 'pointer',
-                        backgroundColor: notif.is_read ? 'transparent' : 'var(--code-bg)',
-                        borderLeft: notif.is_read ? 'none' : '4px solid var(--text-h)',
-                        transition: 'background-color 0.2s',
-                        marginBottom: '4px',
-                        borderBottom: '1px solid var(--border-subtle)'
-                      }}
-                      className="notif-item"
-                    >
-                      <Flex gap="3" align="start">
-                        <Box mt="1">
-                          {isUpdate ? (
-                            <LockClosedIcon style={{ color: 'var(--text-h)' }} />
-                          ) : (
-                            <Share2Icon style={{ color: 'var(--text-h)' }} />
-                          )}
-                        </Box>
-                        <Box>
-                          <Text as="div" size="2" style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.02em', mb: '1', color: 'var(--text-h)' }}>
-                            {isUpdate ? 'Permission Updated' : 'Note Shared'}
-                          </Text>
-                          <Text as="div" size="2" style={{ color: 'var(--text)', lineHeight: 1.4 }}>
-                            <Text weight="bold" style={{ color: 'var(--text-h)' }}>
-                              {notif.content.shared_by_email}
-                            </Text> 
-                            {isUpdate 
-                              ? ` updated your access to "${notif.content.note_title}" to ${notif.content.new_permission}.`
-                              : ` shared a note with you: "${notif.content.note_title}"`
-                            }
-                          </Text>
-                          <Text as="div" size="1" mt="2" style={{ color: 'var(--text)', fontWeight: 700, opacity: 0.5, textTransform: 'uppercase' }}>
-                            {new Date(notif.created_at).toLocaleString()}
-                          </Text>
-                        </Box>
-                      </Flex>
-                    </Box>
-                  );
-                })
-              )}
-            </Box>
-          </ScrollArea>
+  const renderContent = (showClose = false) => (
+    <Flex direction="column" style={{ minHeight: '100%' }}>
+      <Flex justify="between" align="center" p="4" gap="3">
+        <Heading size="4" style={{ fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-h)' }}>Notifications</Heading>
+        <Flex gap="3" align="center">
+          {unreadCount > 0 && (
+            <Button variant="ghost" size="1" color="gray" onClick={markAllAsRead} style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-h)', cursor: 'pointer' }}>
+              Mark all as read
+            </Button>
+          )}
+          {showClose && (
+            <Dialog.Close>
+              <IconButton variant="ghost" color="gray" style={{ cursor: 'pointer' }}>
+                <Cross2Icon width="20" height="20" />
+              </IconButton>
+            </Dialog.Close>
+          )}
         </Flex>
-      </Popover.Content>
-    </Popover.Root>
+      </Flex>
+      <Separator size="4" style={{ backgroundColor: 'var(--border)' }} />
+      <ScrollArea style={{ flexGrow: 1, maxHeight: { initial: 'calc(100svh - 120px)', sm: '400px' } }}>
+        <Box p="0">
+          {notifications.length === 0 ? (
+            <Flex direction="column" align="center" py="8" gap="2">
+              <EnvelopeOpenIcon width="24" height="24" style={{ color: 'var(--text-h)', opacity: 0.2 }} />
+              <Text size="2" style={{ color: 'var(--text)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.4 }}>Inbox Empty</Text>
+            </Flex>
+          ) : (
+            notifications.map(notif => {
+              const isUpdate = notif.type === 'permission_updated';
+              return (
+                <Box
+                  key={notif.id}
+                  onClick={() => handleNotificationClick(notif)}
+                  style={{
+                    padding: '20px',
+                    borderRadius: 0,
+                    cursor: 'pointer',
+                    backgroundColor: notif.is_read ? 'transparent' : 'var(--code-bg)',
+                    borderLeft: notif.is_read ? 'none' : '4px solid var(--text-h)',
+                    transition: 'background-color 0.2s',
+                    borderBottom: '1px solid var(--border-subtle)'
+                  }}
+                  className="notif-item"
+                >
+                  <Flex gap="3" align="start">
+                    <Box mt="1" style={{ flexShrink: 0 }}>
+                      {isUpdate ? (
+                        <LockClosedIcon style={{ color: 'var(--text-h)' }} />
+                      ) : (
+                        <Share2Icon style={{ color: 'var(--text-h)' }} />
+                      )}
+                    </Box>
+                    <Box style={{ flexGrow: 1, minWidth: 0 }}>
+                      <Text as="div" size="2" style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.02em', marginBottom: '4px', color: 'var(--text-h)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {isUpdate ? 'Permission Updated' : 'Note Shared'}
+                      </Text>
+                      <Text as="div" size="2" style={{ color: 'var(--text)', lineHeight: 1.4, wordBreak: 'break-word' }}>
+                        <Text weight="bold" style={{ color: 'var(--text-h)' }}>
+                          {notif.content.shared_by_email}
+                        </Text> 
+                        {isUpdate 
+                          ? ` updated your access to "${notif.content.note_title}" to ${notif.content.new_permission}.`
+                          : ` shared a note with you: "${notif.content.note_title}"`
+                        }
+                      </Text>
+                      <Text as="div" size="1" mt="2" style={{ color: 'var(--text)', fontWeight: 700, opacity: 0.5, textTransform: 'uppercase' }}>
+                        {new Date(notif.created_at).toLocaleString()}
+                      </Text>
+                    </Box>
+                  </Flex>
+                </Box>
+              );
+            })
+          )}
+        </Box>
+      </ScrollArea>
+    </Flex>
+  );
+
+  const trigger = (
+    <Box style={{ cursor: 'pointer', width: label ? '100%' : 'auto' }}>
+      <Flex align="center" gap="2" style={{ position: 'relative' }}>
+        <IconButton variant="ghost" color="gray" size="2" style={{ color: 'var(--text-h)', pointerEvents: 'none' }}>
+          <BellIcon width="20" height="20" />
+        </IconButton>
+        {label && <Text size="2" style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-h)' }}>{label}</Text>}
+        {unreadCount > 0 && (
+          <Box
+            style={{
+              position: 'absolute',
+              top: '-2px',
+              left: '12px',
+              backgroundColor: 'var(--text-h)',
+              color: 'var(--bg)',
+              borderRadius: 0,
+              minWidth: '16px',
+              height: '16px',
+              padding: '0 4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '10px',
+              fontWeight: '900',
+              pointerEvents: 'none',
+              border: '1px solid var(--bg)',
+              zIndex: 1
+            }}
+          >
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </Box>
+        )}
+      </Flex>
+    </Box>
+  );
+
+  return (
+    <>
+      {/* Mobile Dialog */}
+      <Box display={{ initial: 'block', sm: 'none' }}>
+        <Dialog.Root>
+          <Dialog.Trigger>
+            {trigger}
+          </Dialog.Trigger>
+          <Dialog.Content 
+            style={{ 
+              padding: 0, 
+              borderRadius: 0, 
+              border: '1.5px solid var(--border)',
+              maxHeight: '85svh',
+              width: 'calc(100vw - 32px)',
+              margin: '16px auto',
+            }}
+          >
+            <VisuallyHidden>
+              <Dialog.Title>Notifications</Dialog.Title>
+              <Dialog.Description>View your latest note-sharing and permission updates.</Dialog.Description>
+            </VisuallyHidden>
+            {renderContent(true)}
+          </Dialog.Content>
+        </Dialog.Root>
+      </Box>
+
+      {/* Desktop Popover */}
+      <Box display={{ initial: 'none', sm: 'block' }}>
+        <Popover.Root>
+          <Popover.Trigger>
+            {trigger}
+          </Popover.Trigger>
+          <Popover.Content 
+            width="360px"
+            style={{ 
+              padding: '0', 
+              borderRadius: 0, 
+              border: '1.5px solid var(--border)',
+              boxShadow: '8px 8px 0px 0px var(--text-h)',
+              backgroundColor: 'var(--bg)'
+            }}
+            align="end"
+            sideOffset={8}
+          >
+            {renderContent(false)}
+          </Popover.Content>
+        </Popover.Root>
+      </Box>
+    </>
   );
 }
+

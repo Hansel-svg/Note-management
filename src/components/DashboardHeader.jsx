@@ -46,17 +46,21 @@ export default function DashboardHeader({
         </Box>
       )}
 
-      <Flex direction={{ initial: 'column', sm: 'row' }} justify="between" align={{ initial: 'stretch', sm: 'center' }} mb="6" gap="4">
-        <Heading 
-          size={{ initial: '7', sm: '8' }} 
-          as="h1" 
-          display={{ initial: 'block', md: 'none' }}
-          style={{ color: 'var(--text-h)', fontWeight: 800, letterSpacing: '-0.04em', textTransform: 'uppercase', margin: 0 }}
-        >
-          MY NOTES
-        </Heading>
-        <Flex gap="2" align="center" wrap="wrap" justify={{ initial: 'center', sm: 'end' }} display={{ initial: 'flex', md: 'none' }}>
-          <NotificationBell session={session} onSelectNote={onSelectNote} />
+      <Flex 
+        display={{ initial: 'flex', md: 'none' }} 
+        justify="between" 
+        align="center" 
+        mb="6" 
+        px="4"
+        py="3"
+        style={{ 
+          borderBottom: '1.5px solid var(--border)',
+          marginInline: '-16px',
+          backgroundColor: 'var(--bg)',
+          zIndex: 10
+        }}
+      >
+        <Flex gap="3" align="center">
           <Avatar
             size="3"
             src={avatarUrl}
@@ -64,20 +68,40 @@ export default function DashboardHeader({
             radius="none"
             style={{ border: '1.5px solid var(--border)' }}
           />
-          <Button variant="outline" color="gray" onClick={() => setLocation('/preferences')} style={{ cursor: "pointer", borderRadius: 0, fontWeight: 800, borderColor: 'var(--border)', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-h)', flexGrow: { initial: 1, sm: 0 } }}>
+          <NotificationBell session={session} onSelectNote={onSelectNote} />
+        </Flex>
+
+        <Flex gap="2">
+          <IconButton 
+            variant="outline" 
+            color="gray" 
+            onClick={() => setLocation('/preferences')} 
+            style={{ cursor: "pointer", borderRadius: 0, borderColor: 'var(--border)' }}
+            size="3"
+          >
             <GearIcon />
-            <Box display={{ initial: 'none', xs: 'inline', sm: 'inline' }}>PREFERENCES</Box>
-          </Button>
-          <Button variant="outline" color="gray" onClick={() => setLocation('/forgot-password')} style={{ cursor: "pointer", borderRadius: 0, fontWeight: 800, borderColor: 'var(--border)', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-h)', flexGrow: { initial: 1, sm: 0 } }}>
+          </IconButton>
+          <IconButton 
+            variant="outline" 
+            color="gray" 
+            onClick={() => setLocation('/forgot-password')} 
+            style={{ cursor: "pointer", borderRadius: 0, borderColor: 'var(--border)' }}
+            size="3"
+          >
             <LockClosedIcon />
-            <Box display={{ initial: 'none', xs: 'inline', sm: 'inline' }}>RESET PASSWORD</Box>
-          </Button>
-          <Button variant="solid" color="gray" onClick={handleSignOut} style={{ cursor: "pointer", borderRadius: 0, fontWeight: 900, backgroundColor: 'var(--text-h)', color: 'var(--bg)', textTransform: 'uppercase', letterSpacing: '0.1em', flexGrow: { initial: 1, sm: 0 } }}>
+          </IconButton>
+          <IconButton 
+            variant="solid" 
+            color="gray" 
+            onClick={handleSignOut} 
+            style={{ cursor: "pointer", borderRadius: 0, backgroundColor: 'var(--text-h)', color: 'var(--bg)' }}
+            size="3"
+          >
             <ExitIcon />
-            <Box display={{ initial: 'none', xs: 'inline', sm: 'inline' }}>SIGN OUT</Box>
-          </Button>
+          </IconButton>
         </Flex>
       </Flex>
+
 
       <Flex justify="between" align={{ initial: 'start', sm: 'center' }} mb="4" wrap="wrap" gap="4" direction={{ initial: 'column', sm: 'row' }}>
         <Flex gap="3" align="center" style={{ width: { initial: '100%', sm: 'auto' }, justifyContent: 'space-between' }}>
@@ -90,7 +114,12 @@ export default function DashboardHeader({
             </Button>
           </Box>
         </Flex>
-        <Flex gap="3" align="center" style={{ width: '100%', maxWidth: { initial: '100%', sm: '600px' }, flexGrow: 1, justifyContent: 'flex-end' }}>
+        <Flex 
+          gap="3" 
+          align={{ initial: 'stretch', xs: 'center' }} 
+          direction={{ initial: 'column', xs: 'row' }}
+          style={{ width: '100%', maxWidth: { initial: '100%', sm: '600px' }, flexGrow: 1 }}
+        >
           <TextField.Root 
             id="search-input"
             placeholder="SEARCH NOTES OR LABELS... (/)" 
@@ -117,7 +146,7 @@ export default function DashboardHeader({
               </TextField.Slot>
             )}
           </TextField.Root>
-          <Flex gap="2">
+          <Flex gap="2" justify={{ initial: 'end', xs: 'start' }}>
             <IconButton 
               variant={viewMode === 'grid' ? 'solid' : 'outline'} 
               color="gray" 
