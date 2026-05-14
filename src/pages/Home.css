@@ -356,3 +356,22 @@
   white-space: pre-wrap !important;
   word-break: break-word !important;
 }
+
+/* Responsive Dialog Fix */
+@media (max-width: 768px) {
+  [role="dialog"] {
+    max-width: calc(100vw - 12px) !important;
+    width: auto !important;
+    margin-left: 6px !important;
+    margin-right: 6px !important;
+  }
+
+  [role="dialog"] > div {
+    max-width: calc(100vw - 12px) !important;
+    padding: 1.5rem 1rem !important;
+  }
+
+  .notion-content-input {
+    min-height: 30vh !important;
+  }
+}
