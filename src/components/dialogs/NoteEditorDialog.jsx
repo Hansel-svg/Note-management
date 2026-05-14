@@ -194,7 +194,7 @@ export default function NoteEditorDialog({
             <Grid columns="3" gap="3" mt="4">
               {noteImageUrls.map((url, idx) => (
                 <Box key={idx} style={{ position: 'relative', aspectRatio: '1', borderRadius: 0, overflow: 'hidden', border: '1.5px solid var(--border)' }}>
-                  <img src={url} alt={`attachment-${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'grayscale(1)' }} />
+                  <img src={url} alt={`attachment-${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   {canEdit && (
                     <IconButton 
                       size="1" 

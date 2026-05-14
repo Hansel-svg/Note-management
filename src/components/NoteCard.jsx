@@ -66,7 +66,7 @@ export default function NoteCard({
 
             {note.image_urls && note.image_urls.length > 0 && (
               <Box style={{ flexShrink: 0, height: '100px', width: '100%', marginBottom: '16px', border: '1px solid var(--border-subtle)', overflow: 'hidden' }}>
-                <img src={note.image_urls[0]} alt="cover" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'grayscale(1)' }} />
+                <img src={note.image_urls[0]} alt="cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </Box>
             )}
 
