@@ -150,7 +150,7 @@ h1 {
 }
 
 p, .rt-Text {
-  color: var(--text) !important;
+  color: var(--text);
 }
 
 code,

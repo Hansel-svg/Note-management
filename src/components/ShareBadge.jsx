@@ -16,7 +16,7 @@ export default function ShareBadge({ permission }) {
       }}
     >
       <Share2Icon width="12" height="12" />
-      <Text size="1" style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+      <Text size="1" style={{ color: 'var(--bg)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
         {permission === 'edit' ? 'SHARED / EDIT' : 'SHARED / READ'}
       </Text>
     </Flex>
