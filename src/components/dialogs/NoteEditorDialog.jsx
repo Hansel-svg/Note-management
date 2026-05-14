@@ -35,8 +35,9 @@ export default function NoteEditorDialog({
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Content 
         maxWidth="800px" 
+        size="1"
+        className="note-editor-dialog-content"
         style={{ 
-          height: '80vh', 
           display: 'flex', 
           flexDirection: 'column', 
           backgroundColor: noteColor === 'surface' ? 'var(--bg)' : `var(--${noteColor}-2)`,
@@ -44,7 +45,7 @@ export default function NoteEditorDialog({
           border: '1.5px solid var(--border)'
         }}
       >
-        <Flex justify="between" align="center" mb="5">
+        <Flex justify="between" align="center" mb={{ initial: '0', md: '5' }} pt={{ initial: '1', md: '0' }}>
           <Flex align="center" gap="3">
             <Dialog.Title m="0" size="2" style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               {editingNoteId ? (isOwner ? 'Editing Note' : 'Shared Note') : 'New Note'}
@@ -73,34 +74,41 @@ export default function NoteEditorDialog({
               <IconButton
                 variant="ghost"
                 color="gray"
+                size={{ initial: '3', md: '2' }}
                 onClick={onShareClick}
                 style={{ cursor: 'pointer', color: 'var(--text-h)', borderRadius: 0 }}
                 title="Share Note"
               >
-                <Share2Icon />
+                <Share2Icon width="20" height="20" />
               </IconButton>
             )}
             {editingNoteId && isOwner && (
               <IconButton 
                 variant="ghost" 
                 color="gray"
+                size={{ initial: '3', md: '2' }}
                 onClick={onManageLockClick}
                 style={{ cursor: 'pointer', color: 'var(--text-h)', borderRadius: 0 }}
                 title={hasPassword ? "Manage Lock" : "Lock Note"}
               >
-                {hasPassword ? <LockClosedIcon /> : <LockOpen2Icon />}
+                {hasPassword ? <LockClosedIcon width="20" height="20" /> : <LockOpen2Icon width="20" height="20" />}
               </IconButton>
             )}
             <Dialog.Close>
-              <IconButton variant="ghost" color="gray" style={{ cursor: 'pointer', color: 'var(--text-h)', borderRadius: 0 }}>
-                <Cross2Icon width="20" height="20" />
+              <IconButton 
+                variant="ghost" 
+                color="gray" 
+                size={{ initial: '3', md: '2' }}
+                style={{ cursor: 'pointer', color: 'var(--text-h)', borderRadius: 0 }}
+              >
+                <Cross2Icon width="22" height="22" />
               </IconButton>
             </Dialog.Close>
           </Flex>
         </Flex>
 
         {!isOwner && (
-          <Box mb="4" p="3" style={{ border: '1.5px solid var(--border-subtle)', borderRadius: 0 }}>
+          <Box mb={{ initial: '2', md: '4' }} p={{ initial: '2', md: '3' }} style={{ border: '1.5px solid var(--border-subtle)', borderRadius: 0 }}>
             <Text size="1" style={{ display: 'block', textTransform: 'uppercase', fontWeight: 600 }}>
               <strong>Shared by:</strong> {ownerEmail || 'Owner'}
             </Text>
@@ -113,12 +121,12 @@ export default function NoteEditorDialog({
         )}
 
         {isReadOnly && (
-          <Callout.Root color="gray" size="1" mb="3" style={{ borderRadius: 0, border: '1.5px solid var(--border)' }}>
+          <Callout.Root color="gray" size="1" mb={{ initial: '2', md: '3' }} style={{ borderRadius: 0, border: '1.5px solid var(--border)' }}>
             <Callout.Text style={{ fontWeight: 700, textTransform: 'uppercase' }}>You have read-only access to this note.</Callout.Text>
           </Callout.Root>
         )}
 
-        <Flex direction="column" gap="4" style={{ flexGrow: 1 }}>
+        <Flex direction="column" gap={{ initial: '1', md: '4' }} style={{ flexGrow: 1, overflowY: 'auto', paddingBottom: '1rem', minHeight: 0 }}>
           {isOwner && labels.length > 0 && (
             <Flex gap="2" wrap="wrap">
               {labels.map(label => {
@@ -128,7 +136,7 @@ export default function NoteEditorDialog({
                     key={label.id}
                     variant={isSelected ? "solid" : "outline"}
                     color="gray"
-                    size="1"
+                    size={{ initial: '2', md: '1' }}
                     onClick={() => handleToggleNoteLabel(label.id)}
                     style={{ 
                       cursor: 'pointer', 
@@ -164,12 +172,6 @@ export default function NoteEditorDialog({
             }}
           />
           <textarea
-            ref={(el) => {
-              if (el) {
-                el.style.height = 'auto';
-                el.style.height = el.scrollHeight + 'px';
-              }
-            }}
             value={noteContent}
             onChange={canEdit ? handleContentChange : undefined}
             readOnly={!canEdit}
@@ -180,7 +182,10 @@ export default function NoteEditorDialog({
               cursor: !canEdit ? 'default' : undefined,
               opacity: !canEdit ? 0.8 : 1,
               lineHeight: 1.6,
-              color: 'var(--text)'
+              color: 'var(--text)',
+              flexGrow: 1,
+              resize: 'none',
+              overflowY: 'auto'
             }}
             rows={1}
           />
@@ -208,7 +213,7 @@ export default function NoteEditorDialog({
         </Flex>
 
         {canEdit && (
-          <Flex justify="start" mt="4" pt="4" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+          <Flex justify="start" mt={{ initial: '2', md: '4' }} pt={{ initial: '2', md: '4' }}>
             <input 
               type="file" 
               id="image-upload" 
@@ -218,7 +223,7 @@ export default function NoteEditorDialog({
               onChange={handleImageUpload} 
             />
             <label htmlFor="image-upload">
-              <Button asChild variant="outline" color="gray" style={{ cursor: 'pointer', borderRadius: 0, fontWeight: 800, textTransform: 'uppercase', borderColor: 'var(--border)', color: 'var(--text-h)' }}>
+              <Button asChild variant="outline" color="gray" size={{ initial: '3', md: '2' }} style={{ cursor: 'pointer', borderRadius: 0, fontWeight: 800, textTransform: 'uppercase', borderColor: 'var(--border)', color: 'var(--text-h)', width: { initial: '100%', md: 'auto' } }}>
                 <span><ImageIcon /> ADD IMAGE</span>
               </Button>
             </label>
