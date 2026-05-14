@@ -4,6 +4,8 @@ import { Share2Icon, ArchiveIcon, FileTextIcon, PersonIcon, GearIcon, PlusIcon, 
 import { useState, useEffect, useCallback, useRef, useContext } from "react";
 import { useLocation } from "wouter";
 import { ThemeContext } from "../providers/ThemeContext";
+import { useOnlineStatus } from "../hooks/useOnlineStatus";
+import { InfoCircledIcon, SymbolIcon, CheckCircledIcon, CrossCircledIcon } from "@radix-ui/react-icons";
 import "./Home.css";
 
 import DashboardHeader from "../components/DashboardHeader";
@@ -63,6 +65,7 @@ export default function Home({ session }) {
 
   const [activeEditors, setActiveEditors] = useState([]);
   const [unreadNotifications, setUnreadNotifications] = useState([]);
+  const isOnline = useOnlineStatus();
 
 
   useEffect(() => {
@@ -92,14 +95,24 @@ export default function Home({ session }) {
   const fetchNotes = useCallback(async () => {
     if (!session?.user?.id) return;
     
+    if (!isOnline) {
+      const cached = localStorage.getItem('cached_notes');
+      if (cached) {
+        setNotes(JSON.parse(cached));
+      }
+      return;
+    }
+
     const { data, error } = await supabase.rpc('get_dashboard_notes', { search_query: debouncedSearchTerm || '' });
 
     if (!error && data) {
-      setNotes(data.map(n => unlockedNotesContent[n.id] ? { ...n, ...unlockedNotesContent[n.id] } : n));
+      const mergedNotes = data.map(n => unlockedNotesContent[n.id] ? { ...n, ...unlockedNotesContent[n.id] } : n);
+      setNotes(mergedNotes);
+      localStorage.setItem('cached_notes', JSON.stringify(mergedNotes));
     } else {
       console.error("Error fetching notes:", error);
     }
-  }, [session, debouncedSearchTerm, unlockedNotesContent]);
+  }, [session, debouncedSearchTerm, unlockedNotesContent, isOnline]);
 
   useEffect(() => {
     if (!editingNoteId || !isDialogOpen || !session?.user?.email) return;
@@ -515,6 +528,10 @@ export default function Home({ session }) {
       if (!canEdit) return id;
     }
 
+    if (!isOnline) {
+      return id; // Don't allow saving offline
+    }
+
     isSavingRef.current = true;
     setIsSaving(true);
     let newId = id;
@@ -634,6 +651,9 @@ export default function Home({ session }) {
       console.error("Non-owners cannot delete shared notes.");
       return;
     }
+
+    if (!isOnline) return;
+
     try {
       const { error } = await supabase
         .from('notes')
@@ -645,6 +665,13 @@ export default function Home({ session }) {
       console.error("Error deleting note:", error);
     }
   };
+
+  useEffect(() => {
+    if (isOnline) {
+      fetchNotes();
+      fetchLabels();
+    }
+  }, [isOnline, fetchNotes, fetchLabels]);
 
   return (
     <div className="home-container">
@@ -670,9 +697,10 @@ export default function Home({ session }) {
               onClick={openCreateDialog} 
               size="3" 
               variant="solid" 
-              style={{ width: '100%', cursor: 'pointer', borderRadius: 0, fontWeight: 900, backgroundColor: 'var(--text-h)', color: 'var(--bg)', textTransform: 'uppercase', letterSpacing: '0.1em' }}
+              disabled={!isOnline}
+              style={{ width: '100%', cursor: isOnline ? 'pointer' : 'not-allowed', borderRadius: 0, fontWeight: 900, backgroundColor: isOnline ? 'var(--text-h)' : 'var(--border)', color: 'var(--bg)', textTransform: 'uppercase', letterSpacing: '0.1em' }}
             >
-              <PlusIcon /> ADD NOTE
+              <PlusIcon /> {isOnline ? 'ADD NOTE' : 'OFFLINE'}
             </Button>
           </div>
 
@@ -733,6 +761,19 @@ export default function Home({ session }) {
             setViewMode={setViewMode}
             onSelectNote={handleNotificationSelect}
           />
+
+          {!isOnline && (
+            <Box mb="6">
+              <Callout.Root color="gray" variant="surface" style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'var(--border-subtle)' }}>
+                <Callout.Icon>
+                  <InfoCircledIcon />
+                </Callout.Icon>
+                <Callout.Text style={{ fontWeight: 800, textTransform: 'uppercase', color: 'var(--text)' }}>
+                  Viewing cached content. Connect to the internet to create or edit notes.
+                </Callout.Text>
+              </Callout.Root>
+            </Box>
+          )}
 
           {unreadNotifications.length > 0 && (
             <Box mb="6">
@@ -888,6 +929,7 @@ export default function Home({ session }) {
         activeEditors={activeEditors}
         ownerEmail={notes.find(n => n.id === editingNoteId)?.owner_email}
         sharedAt={notes.find(n => n.id === editingNoteId)?.shared_at}
+        isOnline={isOnline}
       />
 
       <LabelManagerDialog 

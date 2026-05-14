@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Container, Card, Flex, Heading, Text, TextField, Button, Box, Callout } from "@radix-ui/themes";
 import { InfoCircledIcon, CheckCircledIcon } from "@radix-ui/react-icons";
 import { Link } from "wouter";
+import { useOnlineStatus } from "../hooks/useOnlineStatus";
 
 function SignUp() {
   const [email, setEmail] = useState("");
@@ -12,6 +13,7 @@ function SignUp() {
   const [signUpError, setSignUpError] = useState("");
   const [signUpSuccess, setSignUpSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const isOnline = useOnlineStatus();
 
   async function signUp(e) {
     e.preventDefault();
@@ -57,6 +59,17 @@ function SignUp() {
                   Sign up to get started
                 </Text>
               </Box>
+
+              {!isOnline && (
+                <Callout.Root color="amber" role="alert" style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent' }}>
+                  <Callout.Icon>
+                    <InfoCircledIcon />
+                  </Callout.Icon>
+                  <Callout.Text style={{ fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-h)' }}>
+                    YOU ARE CURRENTLY OFFLINE. PLEASE CONNECT TO THE INTERNET TO CREATE AN ACCOUNT.
+                  </Callout.Text>
+                </Callout.Root>
+              )}
 
               {signUpError && !signUpSuccess && (
                 <Callout.Root color="gray" role="alert" style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent' }}>
@@ -145,18 +158,18 @@ function SignUp() {
                   type="submit" 
                   size="3" 
                   mt="2" 
-                  disabled={isLoading}
+                  disabled={isLoading || !isOnline}
                   style={{ 
-                    cursor: "pointer", 
+                    cursor: (isLoading || !isOnline) ? "not-allowed" : "pointer", 
                     borderRadius: 0, 
                     fontWeight: 900, 
                     textTransform: 'uppercase', 
                     letterSpacing: '0.1em', 
-                    backgroundColor: 'var(--text-h)', 
+                    backgroundColor: (isLoading || !isOnline) ? 'var(--border)' : 'var(--text-h)', 
                     color: 'var(--bg)' 
                   }}
                 >
-                  {isLoading ? "SIGNING UP..." : "SIGN UP"}
+                  {!isOnline ? "OFFLINE" : (isLoading ? "SIGNING UP..." : "SIGN UP")}
                 </Button>
               </Flex>
 

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Container, Card, Flex, Heading, Text, TextField, Button, Box, Callout } from "@radix-ui/themes";
 import { InfoCircledIcon, CheckCircledIcon } from "@radix-ui/react-icons";
 import { useLocation, Link } from "wouter";
+import { useOnlineStatus } from "../hooks/useOnlineStatus";
 
 export default function UpdatePassword() {
   const [password, setPassword] = useState("");
@@ -11,6 +12,7 @@ export default function UpdatePassword() {
   const [errorMsg, setErrorMsg] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [, setLocation] = useLocation();
+  const isOnline = useOnlineStatus();
 
   const handleUpdate = async (e) => {
     e.preventDefault();
@@ -52,6 +54,17 @@ export default function UpdatePassword() {
                   Enter your new password below
                 </Text>
               </Box>
+
+              {!isOnline && (
+                <Callout.Root color="amber" role="alert" style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent' }}>
+                  <Callout.Icon>
+                    <InfoCircledIcon />
+                  </Callout.Icon>
+                  <Callout.Text style={{ fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-h)' }}>
+                    YOU ARE CURRENTLY OFFLINE. PLEASE CONNECT TO THE INTERNET TO UPDATE YOUR PASSWORD.
+                  </Callout.Text>
+                </Callout.Root>
+              )}
 
               {errorMsg && (
                 <Callout.Root color="gray" role="alert" style={{ borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent' }}>
@@ -102,18 +115,18 @@ export default function UpdatePassword() {
                   type="submit" 
                   size="3" 
                   mt="2" 
-                  disabled={isLoading}
+                  disabled={isLoading || !isOnline}
                   style={{ 
-                    cursor: "pointer", 
+                    cursor: (isLoading || !isOnline) ? "not-allowed" : "pointer", 
                     borderRadius: 0, 
                     fontWeight: 900, 
                     textTransform: 'uppercase', 
                     letterSpacing: '0.1em', 
-                    backgroundColor: 'var(--text-h)', 
+                    backgroundColor: (isLoading || !isOnline) ? 'var(--border)' : 'var(--text-h)', 
                     color: 'var(--bg)' 
                   }}
                 >
-                  {isLoading ? "UPDATING..." : "UPDATE PASSWORD"}
+                  {!isOnline ? "OFFLINE" : (isLoading ? "UPDATING..." : "UPDATE PASSWORD")}
                 </Button>
               </Flex>
               

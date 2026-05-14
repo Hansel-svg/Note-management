@@ -26,10 +26,11 @@ export default function NoteEditorDialog({
   onShareClick,
   activeEditors = [],
   ownerEmail = null,
-  sharedAt = null
+  sharedAt = null,
+  isOnline = true
 }) {
-  const isReadOnly = !isOwner && sharePermission === 'read';
-  const canEdit = isOwner || sharePermission === 'edit';
+  const isReadOnly = (!isOwner && sharePermission === 'read') || !isOnline;
+  const canEdit = (isOwner || sharePermission === 'edit') && isOnline;
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
