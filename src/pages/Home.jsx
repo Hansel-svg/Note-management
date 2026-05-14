@@ -211,6 +211,20 @@ export default function Home({ session }) {
 
   const checkVerification = useCallback(async () => {
     if (!session?.user?.id) return;
+
+    if (!isOnline) {
+      const cached = localStorage.getItem('cached_profile');
+      if (cached) {
+        const data = JSON.parse(cached);
+        setIsVerified(data.is_verified === true);
+        if (data.avatar_url) setAvatarUrl(data.avatar_url);
+        if (data.default_font_size) updateFontSize(data.default_font_size);
+        if (data.default_title_font_size) updateTitleFontSize(data.default_title_font_size);
+        if (data.default_note_color) updateNoteColor(data.default_note_color);
+        console.log("[PWA] Loaded profile from cache.");
+      }
+      return;
+    }
     
     const { data, error } = await supabase
       .from('profiles')
@@ -226,11 +240,19 @@ export default function Home({ session }) {
       if (data.default_font_size) updateFontSize(data.default_font_size);
       if (data.default_title_font_size) updateTitleFontSize(data.default_title_font_size);
       if (data.default_note_color) updateNoteColor(data.default_note_color);
+      localStorage.setItem('cached_profile', JSON.stringify(data));
     }
-  }, [session, updateFontSize, updateTitleFontSize, updateNoteColor]);
+  }, [session, isOnline, updateFontSize, updateTitleFontSize, updateNoteColor]);
 
   const fetchUnreadNotifications = useCallback(async () => {
     if (!session?.user?.id) return;
+
+    if (!isOnline) {
+      const cached = localStorage.getItem('cached_notifications');
+      if (cached) setUnreadNotifications(JSON.parse(cached));
+      return;
+    }
+
     const { data, error } = await supabase
       .from('notifications')
       .select('*')
@@ -240,8 +262,9 @@ export default function Home({ session }) {
     
     if (!error && data) {
       setUnreadNotifications(data);
+      localStorage.setItem('cached_notifications', JSON.stringify(data));
     }
-  }, [session]);
+  }, [session, isOnline]);
 
   const openEditorForNote = useCallback((note) => {
     setNoteTitle(note.title);
