@@ -43,8 +43,32 @@
   background-color: var(--bg) !important;
 }
 
-.rt-Text, .rt-Heading, .rt-Link, .rt-IconButton, .rt-TextFieldInput, .rt-SelectTrigger {
+.rt-Text, .rt-Heading, .rt-Link, .rt-IconButton, .rt-TextFieldInput {
   color: inherit !important;
+}
+
+.rt-SelectTrigger {
+  background-color: transparent !important;
+  color: var(--text-h) !important;
+  border: 1.5px solid var(--border) !important;
+}
+
+.rt-SelectContent {
+  background-color: var(--bg) !important;
+  border: 1.5px solid var(--border) !important;
+  border-radius: 0 !important;
+}
+
+.rt-SelectItem {
+  color: var(--text-h) !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  border-radius: 0 !important;
+}
+
+.rt-SelectItem:hover, .rt-SelectItem[data-highlighted] {
+  background-color: var(--text-h) !important;
+  color: var(--bg) !important;
 }
 
 .rt-IconButton.rt-variant-solid {

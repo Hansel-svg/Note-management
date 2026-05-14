@@ -106,8 +106,8 @@ export default function ShareNoteDialog({ open, onOpenChange, noteId, noteColor 
               Permission
             </Text>
             <Select.Root value={permission} onValueChange={setPermission}>
-              <Select.Trigger style={{ cursor: 'pointer', minWidth: '110px', borderRadius: 0, border: '1.5px solid var(--border)' }} />
-              <Select.Content style={{ borderRadius: 0, border: '1px solid var(--border)' }}>
+              <Select.Trigger style={{ cursor: 'pointer', minWidth: '110px' }} />
+              <Select.Content>
                 <Select.Item value="read" style={{ cursor: 'pointer' }}>READ ONLY</Select.Item>
                 <Select.Item value="edit" style={{ cursor: 'pointer' }}>CAN EDIT</Select.Item>
               </Select.Content>
@@ -165,8 +165,8 @@ export default function ShareNoteDialog({ open, onOpenChange, noteId, noteColor 
                     value={share.permission}
                     onValueChange={(val) => handleChangePermission(share.share_id, val, share.email)}
                   >
-                    <Select.Trigger style={{ cursor: 'pointer', minWidth: '105px', borderRadius: 0, border: '1px solid var(--border)' }} />
-                    <Select.Content style={{ borderRadius: 0, border: '1px solid var(--border)' }}>
+                    <Select.Trigger style={{ cursor: 'pointer', minWidth: '105px' }} />
+                    <Select.Content>
                       <Select.Item value="read" style={{ cursor: 'pointer' }}>READ ONLY</Select.Item>
                       <Select.Item value="edit" style={{ cursor: 'pointer' }}>CAN EDIT</Select.Item>
                     </Select.Content>

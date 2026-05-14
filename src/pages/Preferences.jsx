@@ -193,8 +193,8 @@ export default function Preferences({ session }) {
                   await supabase.from('profiles').update({ default_note_color: val }).eq('id', session.user.id);
                 }
               }}>
-                <Select.Trigger style={{ width: "120px", cursor: "pointer", borderRadius: 0, border: '1.5px solid var(--border)', backgroundColor: 'transparent', color: 'var(--text-h)' }} />
-                <Select.Content style={{ borderRadius: 0, border: '1px solid var(--border)' }}>
+                <Select.Trigger style={{ width: "120px", cursor: "pointer" }} />
+                <Select.Content>
                   <Select.Group>
                     <Select.Item value="surface" style={{ cursor: "pointer" }}>DEFAULT</Select.Item>
                     <Select.Item value="yellow" style={{ cursor: "pointer" }}>YELLOW</Select.Item>
