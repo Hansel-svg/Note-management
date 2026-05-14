@@ -43,7 +43,6 @@
   background-color: var(--bg) !important;
 }
 
-/* Force monochrome on all Radix components */
 .rt-Text, .rt-Heading, .rt-Link, .rt-IconButton, .rt-TextFieldInput, .rt-SelectTrigger {
   color: inherit !important;
 }
@@ -62,7 +61,6 @@
   fill: currentColor !important;
 }
 
-/* Button variant overrides for strict monochrome */
 .rt-Button.rt-variant-solid {
   background-color: var(--text-h) !important;
   color: var(--bg) !important;
@@ -78,7 +76,6 @@
   color: var(--text-h) !important;
 }
 
-/* Specific overrides for Radix UI stubborn colors */
 [data-accent-color] {
   --accent-9: var(--text-h) !important;
   --accent-10: var(--text-h) !important;
@@ -163,6 +160,10 @@ code {
   text-transform: uppercase;
   letter-spacing: -0.04em;
   font-size: 2.5rem;
+
+  @media (max-width: 768px) {
+    font-size: 1.75rem;
+  }
 }
 
 .notion-title-input::placeholder {
@@ -188,10 +189,16 @@ code {
   background-color: var(--bg) !important;
   
   @media (max-width: 768px) {
-    width: 98vw !important;
-    max-width: 98vw !important;
-    max-height: 98vh !important;
-    padding: 16px !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100svh !important;
+    max-height: 100svh !important;
+    padding: 0.5rem 0.75rem !important;
+    border: none !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
 }
 

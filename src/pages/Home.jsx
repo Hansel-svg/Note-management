@@ -649,7 +649,6 @@ export default function Home({ session }) {
   return (
     <div className="home-container">
       <div className="dashboard-layout">
-        {/* SIDEBAR - Desktop Only */}
         <aside className="sidebar">
           <div className="sidebar-section">
             <Flex align="center" gap="3" mb="4">
@@ -720,7 +719,6 @@ export default function Home({ session }) {
           </Box>
         </aside>
 
-        {/* MAIN CONTENT */}
         <main className="main-content">
           <DashboardHeader 
             isVerified={isVerified}
@@ -750,7 +748,6 @@ export default function Home({ session }) {
             </Box>
           )}
 
-          {/* Label Bar - Only on mobile/tablet */}
           <Box display={{ initial: 'block', md: 'none' }}>
             <LabelFilterBar 
               labels={labels}
